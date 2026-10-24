@@ -10,6 +10,7 @@ const {
 } = require('../models');
 
 const router = express.Router();
+const inicioPerguntas = new Map();
 
 function gerarCodigo() {
     const caracteres = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -146,6 +147,7 @@ router.post('/:codigo/iniciar', async (req, res) => {
             status: 'em_andamento',
             perguntaAtual: 0
         });
+        inicioPerguntas.set(partida.id, Date.now());
 
         return res.json({
             mensagem: 'Quiz iniciado!',
@@ -245,6 +247,9 @@ router.get('/:codigo/pergunta', async (req, res) => {
 
         const indice = partida.perguntaAtual ?? 0;
         const pergunta = perguntas[indice];
+        if (pergunta && !inicioPerguntas.has(partida.id)) {
+            inicioPerguntas.set(partida.id, Date.now());
+        }
 
         if (!pergunta) {
             await partida.update({
@@ -363,6 +368,12 @@ router.post('/:codigo/responder', async (req, res) => {
         }
 
         const correta = alternativa === pergunta.respostaCorreta;
+        const inicio = inicioPerguntas.get(partida.id) ?? Date.now();
+        const tempoResposta = Math.max(0, (Date.now() - inicio) / 1000);
+        const bonusRapidez = correta
+            ? (tempoResposta <= 5 ? 3 : tempoResposta <= 10 ? 2 : tempoResposta <= 20 ? 1 : 0)
+            : 0;
+        const pontosGanhos = correta ? 1 + bonusRapidez : 0;
 
         await Resposta.create({
             partidaId: partida.id,
@@ -372,17 +383,20 @@ router.post('/:codigo/responder', async (req, res) => {
             correta
         });
 
-        if (correta) {
-            await jogador.increment('pontuacao');
+        if (pontosGanhos > 0) {
+            await jogador.increment('pontuacao', { by: pontosGanhos });
             await jogador.reload();
         }
 
         return res.json({
             correta,
             mensagem: correta
-                ? 'Resposta correta!'
-                : 'Resposta incorreta.',
+                ? `Resposta correta! +${pontosGanhos} ${pontosGanhos === 1 ? 'ponto' : 'pontos'}${bonusRapidez ? ` (inclui ${bonusRapidez} de bônus por rapidez)` : ''}`
+                : 'Resposta incorreta. Você não ganhou pontos.',
             respostaCorreta: pergunta.respostaCorreta,
+            pontosGanhos,
+            bonusRapidez,
+            tempoResposta: Number(tempoResposta.toFixed(1)),
             pontuacao: jogador.pontuacao
         });
     } catch (error) {
@@ -427,6 +441,7 @@ router.post('/:codigo/proxima', async (req, res) => {
             await partida.update({
                 status: 'finalizada'
             });
+            inicioPerguntas.delete(partida.id);
 
             return res.json({
                 status: 'finalizada',
@@ -437,6 +452,7 @@ router.post('/:codigo/proxima', async (req, res) => {
         await partida.update({
             perguntaAtual: proximoIndice
         });
+        inicioPerguntas.set(partida.id, Date.now());
 
         return res.json({
             status: partida.status,

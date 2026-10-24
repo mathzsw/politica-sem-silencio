@@ -1,0 +1,177 @@
+.equipe {
+    padding: 75px 0 90px;
+    border-top: 1px solid var(--cor-borda);
+}
+.equipe h2 {
+    max-width: 700px;
+    font-family: var(--fonte-titulo);
+    font-size: clamp(32px, 4vw, 48px);
+    line-height: 1.15;
+    letter-spacing: -1.5px;
+}
+.equipe h2 span {
+    display: block;
+    color: var(--cor-roxo-claro);
+}
+.equipe__tema {
+    max-width: 720px;
+    margin-top: 18px;
+    color: var(--cor-texto-secundario);
+    font-size: 14px;
+    line-height: 1.8;
+}
+.equipe__docente {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 18px;
+    margin: 32px 0 20px;
+    padding: 20px 22px;
+    background: var(--cor-superficie);
+    border: 1px solid var(--cor-borda);
+    border-radius: 12px;
+}
+.equipe__docente span:first-child,
+.equipe__integrante span {
+    color: var(--cor-roxo-claro);
+    font-size: 11px;
+    font-weight: 700;
+}
+.equipe__docente strong {
+    font-size: 14px;
+}
+.equipe__docente span:last-child {
+    color: var(--cor-texto-secundario);
+    font-size: 12px;
+}
+.equipe__lista {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+.equipe__integrante {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 58px;
+    padding: 14px 16px;
+    background: rgba(25, 26, 35, 0.7);
+    border: 1px solid var(--cor-borda);
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+.admin-pagina {
+    display: flex;
+    justify-content: center;
+    padding: 70px 0;
+}
+.admin-cartao {
+    width: min(100%, 520px);
+    padding: clamp(24px, 5vw, 42px);
+    background: var(--cor-superficie);
+    border: 1px solid var(--cor-borda);
+    border-radius: 18px;
+}
+.admin-cartao--largo {
+    width: min(100%, 760px);
+}
+.admin-cartao h1 {
+    font-family: var(--fonte-titulo);
+    font-size: clamp(32px, 5vw, 46px);
+    line-height: 1.1;
+    letter-spacing: -1.5px;
+}
+.admin-cartao h1 span {
+    display: block;
+    color: var(--cor-roxo-claro);
+}
+.admin-descricao {
+    margin-top: 16px;
+    color: var(--cor-texto-secundario);
+    font-size: 14px;
+    line-height: 1.7;
+}
+.admin-formulario {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 28px;
+}
+.admin-formulario label {
+    color: var(--cor-texto-secundario);
+    font-size: 12px;
+    font-weight: 600;
+}
+.admin-formulario input,
+.admin-formulario textarea,
+.admin-formulario select {
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 14px;
+    background: #111218;
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    color: var(--cor-branco);
+    font: inherit;
+    outline: none;
+}
+.admin-formulario textarea {
+    resize: vertical;
+}
+.admin-formulario input:focus,
+.admin-formulario textarea:focus,
+.admin-formulario select:focus {
+    border-color: var(--cor-roxo-claro);
+}
+.admin-formulario .botao {
+    margin-top: 10px;
+}
+.admin-alternativas {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin: 4px 0;
+}
+.admin-alternativas div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.admin-mensagem {
+    margin-top: 20px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+}
+.admin-mensagem--erro {
+    color: #ffc5c5;
+    background: rgba(220, 38, 38, 0.12);
+    border: 1px solid rgba(248, 113, 113, 0.35);
+}
+.admin-mensagem--sucesso {
+    color: #e3d7ff;
+    background: rgba(124, 58, 237, 0.14);
+    border: 1px solid rgba(155, 114, 242, 0.4);
+}
+.admin-voltar {
+    display: inline-block;
+    margin-top: 24px;
+    color: var(--cor-texto-secundario);
+    font-size: 12px;
+}
+.admin-voltar:hover {
+    color: var(--cor-roxo-claro);
+}
+@media (max-width: 600px) {
+    .equipe__lista,
+    .admin-alternativas {
+        grid-template-columns: 1fr;
+    }
+    .equipe__docente {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+}

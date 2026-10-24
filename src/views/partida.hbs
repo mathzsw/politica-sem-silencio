@@ -5,906 +5,176 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sala de espera | Política sem Silêncio</title>
     <link rel="stylesheet" href="/css/style.css">
-
     <style>
-        [hidden] {
-            display: none !important;
-        }
-
-        .sala {
-            width: min(100% - 32px, 720px);
-            margin: 0 auto;
-            padding: 48px 0;
-        }
-
-        .sala__cabecalho {
-            margin-bottom: 32px;
-        }
-
-        .sala__titulo {
-            margin-top: 20px;
-            font-size: clamp(32px, 6vw, 52px);
-            line-height: 1.1;
-        }
-
-        .sala__descricao {
-            margin-top: 14px;
-            line-height: 1.7;
-        }
-
-        .sala__codigo {
-            margin-top: 28px;
-            padding: 24px;
-            border: 1px solid var(--cor-borda);
-            border-radius: 14px;
-            background: var(--cor-superficie);
-            text-align: center;
-        }
-
-        .sala__codigo-legenda {
-            display: block;
-            margin-bottom: 10px;
-            color: var(--cor-texto-secundario);
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 2px;
-        }
-
-        .sala__codigo-valor {
-            display: block;
-            font-size: clamp(32px, 8vw, 46px);
-            font-weight: 800;
-            letter-spacing: 8px;
-        }
-
-        .sala__acoes {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 12px;
-            margin-top: 18px;
-        }
-
-        .sala__acoes .botao {
-            cursor: pointer;
-        }
-
-        .painel-jogadores {
-            margin-top: 42px;
-            padding: 24px;
-            border: 1px solid var(--cor-borda);
-            border-radius: 14px;
-            background: var(--cor-superficie);
-        }
-
-        .painel-jogadores__cabecalho {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 22px;
-        }
-
-        .painel-jogadores__titulo {
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .painel-jogadores__contador {
-            padding: 7px 12px;
-            border-radius: 8px;
-            background: rgba(124, 58, 237, 0.16);
-            color: var(--cor-roxo-claro);
-            font-size: 13px;
-            font-weight: 700;
-            white-space: nowrap;
-        }
-
-        .lista-jogadores {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
-        }
-
-        .jogador {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px;
-            border: 1px solid var(--cor-borda);
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.025);
-            overflow-wrap: anywhere;
-        }
-
-        .jogador__avatar {
-            display: grid;
-            flex-shrink: 0;
-            place-items: center;
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
-            background: rgba(124, 58, 237, 0.2);
-            color: var(--cor-roxo-claro);
-            font-weight: 800;
-        }
-
-        .jogador__nome {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .lista-vazia {
-            padding: 24px 12px;
-            color: var(--cor-texto-secundario);
-            text-align: center;
-            line-height: 1.7;
-        }
-
-        .sala__aviso {
-            margin-top: 22px;
-            color: var(--cor-texto-secundario);
-            font-size: 13px;
-            line-height: 1.7;
-            text-align: center;
-        }
-
-        .sala__inicio {
-            margin-top: 28px;
-            text-align: center;
-        }
-
-        .sala__inicio .botao {
-            min-width: 220px;
-        }
-
-        .sala__mensagem {
-            margin-top: 14px;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .quiz__progresso {
-            margin-bottom: 18px;
-            color: var(--cor-roxo-claro);
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: 2px;
-        }
-
-        .quiz__pergunta {
-            margin-bottom: 24px;
-            font-size: clamp(22px, 4vw, 30px);
-            line-height: 1.4;
-        }
-
-        .quiz__instrucao {
-            margin-bottom: 10px;
-            color: var(--cor-texto-secundario);
-            font-size: 14px;
-        }
-
-        .quiz__seletor {
-            width: 100%;
-            padding: 13px;
-            border: 1px solid var(--cor-borda);
-            border-radius: 10px;
-            background: var(--cor-fundo);
-            color: var(--cor-texto);
-            font: inherit;
-        }
-
-        .quiz__alternativas {
-            display: grid;
-            gap: 12px;
-            margin-top: 22px;
-        }
-
-        .quiz__alternativa {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            width: 100%;
-            padding: 16px;
-            border: 1px solid var(--cor-borda);
-            border-radius: 12px;
-            background: var(--cor-superficie);
-            color: var(--cor-texto);
-            font: inherit;
-            line-height: 1.5;
-            text-align: left;
-            cursor: pointer;
-            transition: border-color 0.2s, background 0.2s;
-        }
-
-        .quiz__alternativa:hover:not(:disabled) {
-            border-color: #7c3aed;
-            background: rgba(124, 58, 237, 0.1);
-        }
-
-        .quiz__letra {
-            display: grid;
-            flex-shrink: 0;
-            place-items: center;
-            width: 34px;
-            height: 34px;
-            border-radius: 9px;
-            background: rgba(124, 58, 237, 0.16);
-            color: var(--cor-roxo-claro);
-            font-weight: 800;
-        }
-
-        .quiz__alternativa:disabled {
-            opacity: 0.65;
-            cursor: not-allowed;
-        }
-
-        .quiz__feedback {
-            margin-top: 20px;
-            line-height: 1.7;
-        }
-
-        .quiz__acoes {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .quiz__resultado {
-            margin-top: 24px;
-        }
-
-        .quiz__resultado-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            margin-top: 12px;
-            padding: 16px;
-            border: 1px solid var(--cor-borda);
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.025);
-        }
-
-        .quiz__resultado-pontos {
-            color: var(--cor-roxo-claro);
-            font-weight: 800;
-            white-space: nowrap;
-        }
-
-        @media (max-width: 480px) {
-            .sala {
-                padding: 28px 0;
-            }
-
-            .painel-jogadores {
-                padding: 18px;
-            }
-
-            .sala__codigo-valor {
-                letter-spacing: 5px;
-            }
-
-            .quiz__resultado-item {
-                align-items: flex-start;
-            }
-        }
+        [hidden] { display: none !important; }
+        body { min-height: 100vh; background: #111218; color: #f5f5f7; }
+        .sala { width: min(760px, 92%); margin: 0 auto; padding: 48px 0; }
+        .sala__cabecalho { margin-bottom: 30px; }
+        .sala__etiqueta { display: inline-block; color: #c7f36b; font-size: 12px; font-weight: 800; letter-spacing: 2px; }
+        .sala__titulo { margin: 18px 0 12px; font-size: clamp(32px, 6vw, 48px); line-height: 1.12; }
+        .sala__titulo span { color: #c7f36b; }
+        .sala__descricao { color: #a4a4b0; line-height: 1.7; }
+        .sala__cartao { margin-top: 22px; padding: 26px; border: 1px solid #30313e; border-radius: 16px; background: #191a24; }
+        .sala__codigo { text-align: center; }
+        .sala__codigo-legenda { display: block; color: #a4a4b0; font-size: 12px; font-weight: 700; letter-spacing: 2px; }
+        .sala__codigo-valor { display: block; margin: 12px 0 20px; font-size: clamp(36px, 8vw, 48px); letter-spacing: 8px; }
+        .sala__acoes { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+        .sala__botao { border: 1px solid #393a49; border-radius: 10px; padding: 13px 18px; background: #22232f; color: #f5f5f7; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+        .sala__botao--principal { border-color: #c7f36b; background: #c7f36b; color: #111218; }
+        .sala__botao:disabled { opacity: .6; cursor: wait; }
+        .sala__lista-cabecalho { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+        .sala__lista-cabecalho h2 { margin: 0; font-size: 20px; }
+        .sala__contador { color: #c7f36b; font-size: 13px; font-weight: 700; }
+        .sala__jogadores { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+        .sala__jogador { padding: 14px; border: 1px solid #30313e; border-radius: 10px; background: #22232f; overflow-wrap: anywhere; }
+        .sala__vazia { grid-column: 1 / -1; padding: 20px 8px; color: #a4a4b0; text-align: center; line-height: 1.7; }
+        .sala__inicio { margin-top: 24px; text-align: center; }
+        .sala__mensagem, .sala__status { color: #a4a4b0; font-size: 13px; line-height: 1.7; }
+        .sala__status { margin-top: 18px; text-align: center; }
+        @media (max-width: 480px) { .sala { padding: 28px 0; } .sala__cartao { padding: 20px; } .sala__codigo-valor { letter-spacing: 5px; } }
     </style>
 </head>
-
 <body>
-    <main
-        class="sala"
-        id="sala"
-        data-codigo="{{partida.codigo}}"
-        data-status="{{partida.status}}"
-    >
+    <main class="sala" id="sala" data-codigo="{{partida.codigo}}">
         <header class="sala__cabecalho">
-            <span class="etiqueta">
-                <span class="etiqueta__ponto"></span>
-                <span id="rotulo-sala">SALA DE ESPERA</span>
-            </span>
-
-            <h1 class="sala__titulo" id="titulo-sala">
-                Sua partida
-                <span>está pronta.</span>
-            </h1>
-
-            <p class="sala__descricao" id="descricao-sala">
-                Compartilhe o código com os participantes e aguarde todos entrarem.
-            </p>
+            <span class="sala__etiqueta">POLÍTICA SEM SILÊNCIO · SALA DE ESPERA</span>
+            <h1 class="sala__titulo">Sua partida <span>está pronta.</span></h1>
+            <p class="sala__descricao">Compartilhe o código com os participantes. Quando todos estiverem prontos, o apresentador poderá iniciar o quiz.</p>
         </header>
 
-        <section class="sala__codigo">
+        <section class="sala__cartao sala__codigo">
             <span class="sala__codigo-legenda">CÓDIGO DA PARTIDA</span>
-
-            <strong class="sala__codigo-valor" id="codigo-partida">
-                {{partida.codigo}}
-            </strong>
-
+            <strong class="sala__codigo-valor" id="codigo-partida">{{partida.codigo}}</strong>
             <div class="sala__acoes">
-                <button
-                    class="botao botao--principal"
-                    id="copiar-codigo"
-                    type="button"
-                >
-                    Copiar código
-                    <span aria-hidden="true">&rarr;</span>
-                </button>
-
-                <a href="/" class="botao botao--secundario">
-                    Voltar ao início
-                </a>
+                <button class="sala__botao sala__botao--principal" id="copiar-codigo" type="button">Copiar código</button>
+                <a class="sala__botao" href="/">Voltar ao início</a>
             </div>
         </section>
 
-        <section class="painel-jogadores">
-            <div class="painel-jogadores__cabecalho">
-                <h2 class="painel-jogadores__titulo">Participantes</h2>
-
-                <span class="painel-jogadores__contador" id="contador-jogadores">
-                    {{jogadores.length}} jogadores
-                </span>
+        <section class="sala__cartao">
+            <div class="sala__lista-cabecalho">
+                <h2>Participantes</h2>
+                <span class="sala__contador" id="contador-jogadores">{{jogadores.length}} participantes</span>
             </div>
-
-            <div class="lista-jogadores" id="lista-jogadores" aria-live="polite">
+            <div class="sala__jogadores" id="lista-jogadores" aria-live="polite">
                 {{#each jogadores}}
-                    <article class="jogador">
-                        <span class="jogador__avatar">{{this.nome.[0]}}</span>
-                        <span class="jogador__nome">{{this.nome}}</span>
-                    </article>
+                    <article class="sala__jogador">{{this.nome}}</article>
                 {{else}}
-                    <p class="lista-vazia">
-                        Ainda não há participantes.<br>
-                        Compartilhe o código para começar!
-                    </p>
+                    <p class="sala__vazia">Ainda não há participantes.<br>Compartilhe o código para começar!</p>
                 {{/each}}
             </div>
-
-            <div class="sala__inicio" id="area-inicio">
-                <button
-                    class="botao botao--principal"
-                    id="iniciar-quiz"
-                    type="button"
-                >
-                    Iniciar quiz
-                    <span aria-hidden="true">&rarr;</span>
-                </button>
-
-                <p class="sala__mensagem" id="mensagem-inicio" role="status">
-                    Quando todos estiverem prontos, inicie o quiz.
-                </p>
+            <div class="sala__inicio">
+                <button class="sala__botao sala__botao--principal" id="iniciar-quiz" type="button">Iniciar quiz →</button>
+                <p class="sala__mensagem" id="mensagem-inicio" role="status">Quando todos estiverem prontos, inicie o quiz.</p>
             </div>
-
-            <p class="sala__aviso" id="status-atualizacao">
-                Lista atualizada automaticamente.
-            </p>
-        </section>
-
-        <section class="painel-jogadores" id="painel-quiz" hidden>
-            <p class="quiz__progresso" id="progresso-pergunta"></p>
-
-            <h2 class="quiz__pergunta" id="enunciado-pergunta"></h2>
-
-            <label class="quiz__instrucao" for="meu-jogador">
-                Selecione seu nome para responder:
-            </label>
-
-            <select class="quiz__seletor" id="meu-jogador">
-                <option value="">Selecione seu nome</option>
-            </select>
-
-            <div class="quiz__alternativas" id="alternativas"></div>
-
-            <p class="quiz__feedback" id="feedback-resposta" role="status"></p>
-
-            <div class="quiz__acoes">
-                <button
-                    class="botao botao--principal"
-                    id="proxima-pergunta"
-                    type="button"
-                    hidden
-                >
-                    Próxima pergunta
-                    <span aria-hidden="true">&rarr;</span>
-                </button>
-            </div>
-
-            <div class="quiz__resultado" id="resultado-final" hidden></div>
+            <p class="sala__status" id="status-atualizacao">Lista atualizada automaticamente.</p>
         </section>
     </main>
 
     <script>
-    const sala = document.getElementById('sala');
-    const codigo = sala.dataset.codigo;
-    const chaveApresentador = `chave-apresentador-${codigo}`;
-    const tokenApresentador = sessionStorage.getItem(chaveApresentador);
-    const chaveJogador = `jogador-${codigo}`;
+        const sala = document.getElementById('sala');
+        const codigo = sala.dataset.codigo;
+        const tokenApresentador = sessionStorage.getItem('chave-apresentador-' + codigo);
+        const botaoIniciar = document.getElementById('iniciar-quiz');
+        const mensagemInicio = document.getElementById('mensagem-inicio');
+        const listaJogadores = document.getElementById('lista-jogadores');
+        const contadorJogadores = document.getElementById('contador-jogadores');
+        const statusAtualizacao = document.getElementById('status-atualizacao');
+        const botaoCopiar = document.getElementById('copiar-codigo');
+        let atualizando = false;
+        let iniciando = false;
 
-    let ehApresentador = Boolean(tokenApresentador);
-    let perguntaAtualId = null;
-    let respostaEnviada = false;
+        if (!tokenApresentador) {
+            botaoIniciar.hidden = true;
+            mensagemInicio.textContent = 'Aguardando o apresentador iniciar o quiz.';
+        }
 
-    const listaJogadores = document.getElementById('lista-jogadores');
-    const contadorJogadores = document.getElementById('contador-jogadores');
-    const statusAtualizacao = document.getElementById('status-atualizacao');
-    const botaoCopiar = document.getElementById('copiar-codigo');
-    const botaoIniciar = document.getElementById('iniciar-quiz');
-    const areaInicio = document.getElementById('area-inicio');
-    const mensagemInicio = document.getElementById('mensagem-inicio');
-    const rotuloSala = document.getElementById('rotulo-sala');
-    const tituloSala = document.getElementById('titulo-sala');
-    const descricaoSala = document.getElementById('descricao-sala');
-    const painelQuiz = document.getElementById('painel-quiz');
-    const progressoPergunta = document.getElementById('progresso-pergunta');
-    const enunciadoPergunta = document.getElementById('enunciado-pergunta');
-    const seletorJogador = document.getElementById('meu-jogador');
-    const alternativas = document.getElementById('alternativas');
-    const feedbackResposta = document.getElementById('feedback-resposta');
-    const botaoProxima = document.getElementById('proxima-pergunta');
-    const resultadoFinal = document.getElementById('resultado-final');
+        function abrirQuiz() {
+            window.location.replace('/partidas/' + encodeURIComponent(codigo) + '/quiz');
+        }
 
-    if (!ehApresentador) {
-        botaoIniciar.hidden = true;
-        mensagemInicio.textContent =
-            'Somente quem criou a sala pode iniciar o quiz.';
-    }
+        function mostrarJogadores(jogadores) {
+            contadorJogadores.textContent = jogadores.length + ' ' + (jogadores.length === 1 ? 'participante' : 'participantes');
+            listaJogadores.replaceChildren();
 
-    function mostrarJogadores(jogadores) {
-        contadorJogadores.textContent =
-            `${jogadores.length} ${jogadores.length === 1 ? 'jogador' : 'jogadores'}`;
+            if (!jogadores.length) {
+                const vazio = document.createElement('p');
+                vazio.className = 'sala__vazia';
+                vazio.textContent = 'Ainda não há participantes. Compartilhe o código para começar!';
+                listaJogadores.appendChild(vazio);
+                return;
+            }
 
-        listaJogadores.replaceChildren();
-
-        if (jogadores.length === 0) {
-            const mensagem = document.createElement('p');
-            mensagem.className = 'lista-vazia';
-            mensagem.textContent =
-                'Ainda não há participantes. Compartilhe o código para começar!';
-
-            listaJogadores.appendChild(mensagem);
-        } else {
             jogadores.forEach((jogador) => {
-                const cartao = document.createElement('article');
-                cartao.className = 'jogador';
-
-                const avatar = document.createElement('span');
-                avatar.className = 'jogador__avatar';
-                avatar.textContent = jogador.nome.charAt(0).toUpperCase();
-
-                const nome = document.createElement('span');
-                nome.className = 'jogador__nome';
-                nome.textContent = jogador.nome;
-
-                cartao.append(avatar, nome);
-                listaJogadores.appendChild(cartao);
+                const item = document.createElement('article');
+                item.className = 'sala__jogador';
+                item.textContent = jogador.nome;
+                listaJogadores.appendChild(item);
             });
         }
 
-        const jogadorSalvo =
-            seletorJogador.value ||
-            localStorage.getItem(chaveJogador) ||
-            '';
+        async function atualizarSala() {
+            if (atualizando) return;
+            atualizando = true;
 
-        seletorJogador.replaceChildren();
+            try {
+                const resposta = await fetch('/partidas/' + encodeURIComponent(codigo) + '/jogadores');
+                const dados = await resposta.json();
 
-        const opcaoInicial = document.createElement('option');
-        opcaoInicial.value = '';
-        opcaoInicial.textContent = 'Selecione seu nome';
+                if (!resposta.ok) throw new Error(dados.erro || 'Não foi possível atualizar a sala.');
 
-        seletorJogador.appendChild(opcaoInicial);
-
-        jogadores.forEach((jogador) => {
-            const opcao = document.createElement('option');
-            opcao.value = jogador.id;
-            opcao.textContent = jogador.nome;
-
-            seletorJogador.appendChild(opcao);
-        });
-
-        if (jogadores.some(jogador => String(jogador.id) === jogadorSalvo)) {
-            seletorJogador.value = jogadorSalvo;
-        }
-    }
-
-    function atualizarEstado(status) {
-        if (status === 'aguardando') {
-            rotuloSala.textContent = 'SALA DE ESPERA';
-
-            tituloSala.replaceChildren(
-                document.createTextNode('Sua partida ')
-            );
-
-            const destaque = document.createElement('span');
-            destaque.textContent = 'está pronta.';
-
-            tituloSala.appendChild(destaque);
-
-            descricaoSala.textContent =
-                'Compartilhe o código com os participantes e aguarde todos entrarem.';
-
-            areaInicio.hidden = false;
-            painelQuiz.hidden = true;
-
-            botaoIniciar.disabled = false;
-
-            botaoIniciar.innerHTML =
-                'Iniciar quiz <span aria-hidden="true">&rarr;</span>';
-
-            botaoProxima.hidden = true;
-        }
-
-        if (status === 'em_andamento') {
-            rotuloSala.textContent = 'QUIZ INICIADO';
-
-            tituloSala.replaceChildren(
-                document.createTextNode('A partida ')
-            );
-
-            const destaque = document.createElement('span');
-            destaque.textContent = 'começou!';
-
-            tituloSala.appendChild(destaque);
-
-            descricaoSala.textContent =
-                'Leia cada pergunta e escolha sua resposta.';
-
-            areaInicio.hidden = true;
-            painelQuiz.hidden = false;
-        }
-
-        if (status === 'finalizada') {
-            rotuloSala.textContent = 'PARTIDA FINALIZADA';
-
-            tituloSala.replaceChildren(
-                document.createTextNode('Fim de ')
-            );
-
-            const destaque = document.createElement('span');
-            destaque.textContent = 'jogo!';
-
-            tituloSala.appendChild(destaque);
-
-            descricaoSala.textContent =
-                'Confira a classificação final da partida.';
-
-            areaInicio.hidden = true;
-            painelQuiz.hidden = false;
-            botaoProxima.hidden = true;
-        }
-
-        botaoProxima.hidden =
-            !ehApresentador || status !== 'em_andamento';
-    }
-
-    function mostrarPergunta(dados) {
-        const pergunta = dados.pergunta;
-
-        if (!pergunta || pergunta.id === perguntaAtualId) {
-            return;
-        }
-
-        perguntaAtualId = pergunta.id;
-        respostaEnviada = false;
-
-        progressoPergunta.textContent =
-            `PERGUNTA ${dados.numeroPergunta} DE ${dados.totalPerguntas}`;
-
-        enunciadoPergunta.textContent = pergunta.enunciado;
-        feedbackResposta.textContent = '';
-
-        resultadoFinal.hidden = true;
-        resultadoFinal.replaceChildren();
-        alternativas.replaceChildren();
-
-        const opcoes = [
-            ['A', pergunta.alternativaA],
-            ['B', pergunta.alternativaB],
-            ['C', pergunta.alternativaC],
-            ['D', pergunta.alternativaD]
-        ];
-
-        opcoes.forEach(([letra, texto]) => {
-            const botao = document.createElement('button');
-            botao.type = 'button';
-            botao.className = 'quiz__alternativa';
-
-            const marcador = document.createElement('span');
-            marcador.className = 'quiz__letra';
-            marcador.textContent = letra;
-
-            const conteudo = document.createElement('span');
-            conteudo.textContent = texto;
-
-            botao.append(marcador, conteudo);
-
-            botao.addEventListener('click', () => {
-                enviarResposta(letra);
-            });
-
-            alternativas.appendChild(botao);
-        });
-
-        botaoProxima.hidden = !ehApresentador;
-        botaoProxima.disabled = false;
-
-        botaoProxima.innerHTML =
-            'Próxima pergunta <span aria-hidden="true">&rarr;</span>';
-    }
-
-    async function enviarResposta(alternativa) {
-        if (respostaEnviada) {
-            return;
-        }
-
-        const jogadorId = seletorJogador.value;
-
-        if (!jogadorId) {
-            feedbackResposta.textContent =
-                'Selecione seu nome antes de responder.';
-
-            return;
-        }
-
-        respostaEnviada = true;
-
-        alternativas.querySelectorAll('button').forEach((botao) => {
-            botao.disabled = true;
-        });
-
-        feedbackResposta.textContent = 'Verificando resposta...';
-
-        try {
-            const resposta = await fetch(
-                `/partidas/${encodeURIComponent(codigo)}/responder`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        jogadorId,
-                        perguntaId: perguntaAtualId,
-                        alternativa
-                    })
+                if (dados.status === 'em_andamento' || dados.status === 'finalizada') {
+                    abrirQuiz();
+                    return;
                 }
-            );
 
-            const dados = await resposta.json();
+                mostrarJogadores(dados.jogadores || []);
+                statusAtualizacao.textContent = 'Lista atualizada automaticamente.';
+            } catch (erro) {
+                statusAtualizacao.textContent = 'Não foi possível atualizar a sala. Tentando novamente...';
+                console.error('Erro ao atualizar sala:', erro);
+            } finally {
+                atualizando = false;
+            }
+        }
 
-            if (!resposta.ok) {
-                respostaEnviada = false;
+        botaoIniciar.addEventListener('click', async () => {
+            if (!tokenApresentador || iniciando) return;
 
-                alternativas.querySelectorAll('button').forEach((botao) => {
-                    botao.disabled = false;
+            iniciando = true;
+            botaoIniciar.disabled = true;
+            botaoIniciar.textContent = 'Iniciando quiz...';
+            mensagemInicio.textContent = 'Preparando a primeira pergunta.';
+
+            try {
+                const resposta = await fetch('/partidas/' + encodeURIComponent(codigo) + '/iniciar', {
+                    method: 'POST',
+                    headers: { 'X-Chave-Apresentador': tokenApresentador }
                 });
+                const dados = await resposta.json();
 
-                feedbackResposta.textContent =
-                    dados.erro || 'Não foi possível registrar a resposta.';
+                if (!resposta.ok) throw new Error(dados.erro || 'Não foi possível iniciar o quiz.');
 
-                return;
-            }
-
-            feedbackResposta.textContent =
-                `${dados.mensagem} A resposta correta era ${dados.respostaCorreta}. Sua pontuação: ${dados.pontuacao}.`;
-        } catch (erro) {
-            respostaEnviada = false;
-
-            alternativas.querySelectorAll('button').forEach((botao) => {
-                botao.disabled = false;
-            });
-
-            feedbackResposta.textContent =
-                'Erro de conexão. Tente novamente.';
-
-            console.error('Erro ao enviar resposta:', erro);
-        }
-    }
-
-    function mostrarResultado(ranking) {
-        resultadoFinal.replaceChildren();
-        resultadoFinal.hidden = false;
-
-        alternativas.replaceChildren();
-        feedbackResposta.textContent = '';
-
-        enunciadoPergunta.textContent = 'Classificação final';
-        progressoPergunta.textContent = 'RESULTADO DA PARTIDA';
-
-        if (ranking.length === 0) {
-            const mensagem = document.createElement('p');
-            mensagem.className = 'lista-vazia';
-            mensagem.textContent =
-                'Nenhum participante entrou nesta partida.';
-
-            resultadoFinal.appendChild(mensagem);
-            return;
-        }
-
-        ranking.forEach((jogador, indice) => {
-            const item = document.createElement('div');
-            item.className = 'quiz__resultado-item';
-
-            const nome = document.createElement('span');
-            nome.textContent =
-                `${indice + 1}º lugar — ${jogador.nome}`;
-
-            const pontos = document.createElement('span');
-            pontos.className = 'quiz__resultado-pontos';
-            pontos.textContent =
-                `${jogador.pontuacao} ponto(s)`;
-
-            item.append(nome, pontos);
-            resultadoFinal.appendChild(item);
-        });
-    }
-
-    async function atualizarJogadores() {
-        const resposta = await fetch(
-            `/partidas/${encodeURIComponent(codigo)}/jogadores`
-        );
-
-        if (!resposta.ok) {
-            throw new Error('Não foi possível consultar os participantes.');
-        }
-
-        const dados = await resposta.json();
-
-        mostrarJogadores(dados.jogadores);
-        atualizarEstado(dados.status);
-    }
-
-    async function atualizarPergunta() {
-        const resposta = await fetch(
-            `/partidas/${encodeURIComponent(codigo)}/pergunta`
-        );
-
-        if (!resposta.ok) {
-            throw new Error('Não foi possível consultar a pergunta.');
-        }
-
-        const dados = await resposta.json();
-
-        atualizarEstado(dados.status);
-
-        if (dados.status === 'em_andamento') {
-            mostrarPergunta(dados);
-        }
-
-        if (dados.status === 'finalizada') {
-            mostrarResultado(dados.ranking || []);
-        }
-
-        if (dados.status === 'aguardando') {
-            resultadoFinal.hidden = true;
-        }
-    }
-
-    async function atualizarTudo() {
-        try {
-            await atualizarJogadores();
-            await atualizarPergunta();
-
-            statusAtualizacao.textContent =
-                'Lista atualizada automaticamente.';
-        } catch (erro) {
-            statusAtualizacao.textContent =
-                'Não foi possível atualizar a sala. Tentando novamente...';
-
-            console.error('Erro ao atualizar a partida:', erro);
-        }
-    }
-
-    botaoIniciar.addEventListener('click', async () => {
-        if (!ehApresentador || !tokenApresentador) {
-            mensagemInicio.textContent =
-                'Somente quem criou a sala pode iniciar o quiz.';
-
-            return;
-        }
-
-        botaoIniciar.disabled = true;
-        mensagemInicio.textContent = 'Iniciando quiz...';
-
-        try {
-            const resposta = await fetch(
-                `/partidas/${encodeURIComponent(codigo)}/iniciar`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'X-Chave-Apresentador': tokenApresentador
-                    }
-                }
-            );
-
-            const dados = await resposta.json();
-
-            if (!resposta.ok) {
-                mensagemInicio.textContent =
-                    dados.erro || 'Não foi possível iniciar.';
-
+                abrirQuiz();
+            } catch (erro) {
+                mensagemInicio.textContent = erro.message;
                 botaoIniciar.disabled = false;
-                return;
+                botaoIniciar.textContent = 'Iniciar quiz →';
+                iniciando = false;
             }
+        });
 
-            atualizarEstado(dados.status);
-
-            mensagemInicio.textContent = 'Quiz iniciado com sucesso!';
-
-            await atualizarTudo();
-        } catch (erro) {
-            mensagemInicio.textContent =
-                'Erro de conexão. Tente novamente.';
-
-            botaoIniciar.disabled = false;
-
-            console.error('Erro ao iniciar o quiz:', erro);
-        }
-    });
-
-    botaoProxima.addEventListener('click', async () => {
-        if (!ehApresentador || !tokenApresentador) {
-            feedbackResposta.textContent =
-                'Somente quem criou a sala pode avançar as perguntas.';
-
-            return;
-        }
-
-        botaoProxima.disabled = true;
-        botaoProxima.textContent = 'Avançando...';
-
-        try {
-            const resposta = await fetch(
-                `/partidas/${encodeURIComponent(codigo)}/proxima`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'X-Chave-Apresentador': tokenApresentador
-                    }
-                }
-            );
-
-            const dados = await resposta.json();
-
-            if (!resposta.ok) {
-                feedbackResposta.textContent =
-                    dados.erro || 'Não foi possível avançar.';
-
-                return;
+        botaoCopiar.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(codigo);
+                botaoCopiar.textContent = 'Código copiado!';
+            } catch (erro) {
+                mensagemInicio.textContent = 'O código da partida é ' + codigo + '. Copie-o manualmente.';
             }
+        });
 
-            await atualizarTudo();
-        } catch (erro) {
-            feedbackResposta.textContent =
-                'Erro de conexão. Tente novamente.';
-
-            console.error('Erro ao avançar pergunta:', erro);
-        } finally {
-            botaoProxima.innerHTML =
-                'Próxima pergunta <span aria-hidden="true">&rarr;</span>';
-
-            botaoProxima.disabled = false;
-        }
-    });
-
-    seletorJogador.addEventListener('change', () => {
-        if (seletorJogador.value) {
-            localStorage.setItem(chaveJogador, seletorJogador.value);
-        }
-    });
-
-    botaoCopiar.addEventListener('click', async () => {
-        try {
-            await navigator.clipboard.writeText(codigo);
-            botaoCopiar.textContent = 'Código copiado!';
-        } catch (erro) {
-            mensagemInicio.textContent =
-                `Seu código é ${codigo}. Copie-o manualmente.`;
-        }
-    });
-
-    atualizarTudo();
-
-    setInterval(atualizarTudo, 2000);
-</script>
+        atualizarSala();
+        setInterval(atualizarSala, 2000);
+    </script>
 </body>
 </html>

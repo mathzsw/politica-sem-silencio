@@ -31,7 +31,7 @@ app.get('/entrar', (req, res) => {
 });
 
 app.get('/admin', (req, res) => {
-    res.render('admin', { layout: false });
+    return res.status(404).send('Página não encontrada.');
 });
 
 app.get('/', (req, res) => {

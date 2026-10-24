@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acesso administrativo | Política sem Silêncio</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header class="cabecalho">
+        <a href="/" class="marca">
+            <span class="marca__icone">&gt;</span>
+            <span class="marca__texto">POLÍTICA<strong>SEM SILÊNCIO</strong></span>
+        </a>
+        <span class="cabecalho__rotulo">ÁREA RESTRITA</span>
+    </header>
+    <main class="pagina admin-pagina">
+        <section class="admin-cartao">
+            <span class="etiqueta"><span class="etiqueta__ponto"></span> ACESSO PROTEGIDO</span>
+            <h1>Painel <span>administrativo.</span></h1>
+            <p class="admin-descricao">Informe a senha para gerenciar as perguntas do quiz.</p>
+            {{#if erro}}
+                <p class="admin-mensagem admin-mensagem--erro">{{erro}}</p>
+            {{/if}}
+            <form action="/admin/login" method="POST" class="admin-formulario">
+                <label for="senha">Senha administrativa</label>
+                <input id="senha" name="senha" type="password" autocomplete="current-password" required autofocus>
+                <button class="botao botao--principal" type="submit">Entrar no painel <span aria-hidden="true">&rarr;</span></button>
+            </form>
+            <a class="admin-voltar" href="/">Voltar para a página inicial</a>
+        </section>
+    </main>
+</body>
+</html>

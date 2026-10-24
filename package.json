@@ -1,0 +1,26 @@
+{
+  "name": "politica-sem-silencio",
+  "version": "1.0.0",
+  "description": "Quiz interativo sobre violência política de gênero e raça no ambiente digital.",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js"
+  },
+  "keywords": [
+    "quiz",
+    "historia",
+    "violencia-politica",
+    "genero",
+    "raca"
+  ],
+  "author": "Matheus Augusto e equipe",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.2.1",
+    "express-handlebars": "^8.0.7",
+    "sequelize": "^6.37.8",
+    "sqlite3": "^5.1.7"
+  }
+}

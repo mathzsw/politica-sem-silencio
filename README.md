@@ -9,7 +9,7 @@ A proposta é transformar o conteúdo pesquisado em uma atividade participativa:
 - Criação de salas com código de acesso.
 - Entrada de participantes pelo código da sala.
 - Sala de espera com lista de jogadores.
-- Controle do quiz pelo apresentador.
+- Controle do quiz exclusivo de quem criou a sala.
 - Perguntas com quatro alternativas.
 - Pontuação por resposta correta e bônus por rapidez.
 - Ranking atualizado durante a partida e classificação final.
@@ -23,6 +23,15 @@ A proposta é transformar o conteúdo pesquisado em uma atividade participativa:
 | Acertar em mais de 10 até 20 segundos | 2 |
 | Acertar após 20 segundos | 1 |
 | Errar | 0 |
+
+## Segurança
+
+- O painel `/admin` não está disponível publicamente.
+- A API bloqueia solicitações públicas de cadastro de perguntas (`POST /perguntas`).
+- Somente quem criou uma sala, usando a chave privada gerada para aquela partida, pode iniciá-la ou avançar as perguntas.
+- A chave do apresentador é armazenada no banco como hash; ela não deve ser compartilhada com os participantes.
+
+O cadastro público de perguntas está desativado. Para preparar o conteúdo do quiz, a equipe responsável deve inserir as perguntas por um procedimento administrativo privado, sem expor um formulário de cadastro aos participantes.
 
 ## Tecnologias
 
@@ -74,13 +83,9 @@ npm run dev
 1. Abra a página inicial e selecione **Criar partida**.
 2. Compartilhe o código da sala com os participantes.
 3. Os participantes acessam **Entrar na partida**, informam o código e escolhem seus nomes.
-4. Quando todos estiverem na sala de espera, o apresentador inicia o quiz.
+4. Quando todos estiverem na sala de espera, quem criou a partida pode iniciar o quiz.
 5. Os jogadores respondem às perguntas e acompanham o ranking.
 6. Ao final, confira a classificação da partida.
-
-## Cadastrar perguntas
-
-Acesse [http://localhost:3001/admin](http://localhost:3001/admin) durante a execução local para cadastrar perguntas, alternativas e a resposta correta.
 
 ## Estrutura do projeto
 
@@ -106,10 +111,23 @@ Para publicar, conecte este repositório a um serviço de hospedagem compatível
 
 **Atenção ao banco de dados:** a versão atual usa SQLite em arquivo. Em hospedagens com sistema de arquivos temporário, as perguntas, salas e pontuações podem ser perdidas quando o serviço reiniciar ou for publicado novamente. Para uso público contínuo, configure armazenamento persistente ou migre para um banco de dados hospedado.
 
-## Contexto do projeto
+## Contexto e equipe
 
-Trabalho de História sobre casos reais de violência política de gênero no ambiente digital, considerando também o viés de raça.
+**Trabalho:** Casos reais de violência política de gênero no ambiente digital, considerando o viés de raça.
 
----
+**Instituição:** Instituto Federal de Educação, Ciência e Tecnologia de Pernambuco (IFPE) — Campus Jaboatão dos Guararapes.
 
-Desenvolvido por Matheus Augusto e equipe.
+**Disciplina:** História  
+**Docente:** Jandynea
+
+**Discentes:**
+
+1. Ádrian Vinícius Oliveira de Almeida
+2. Allycia da Silva Gomes Ribeiro
+3. Ana Heloíza dos Santos e Souza
+4. Edklause Diniz de Oliveira Filho
+5. Maria Helena Medeiros Madruga
+6. Matheus Augusto Rodrigues de Alencar
+7. Melyssa Valéria Souza Almeida
+8. Nicolas Alcantara da Silva
+9. Thais Myller Felix da Silva

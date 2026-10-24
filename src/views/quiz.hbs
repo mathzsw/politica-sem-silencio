@@ -56,9 +56,9 @@
                 <a class="quiz-botao" href="/partidas/{{codigo}}">Sala de espera</a>
                 <button class="quiz-botao" id="proxima-pergunta" type="button" hidden>Próxima pergunta →</button>
             </div>
-            <section class="quiz-painel-pontuacao" id="painel-pontuacao" hidden>
+            <section class="quiz-painel-pontuacao" id="painel-pontuacao">
                 <h2>Placar ao vivo</h2>
-                <p>A pontuação é atualizada conforme os participantes acertam.</p>
+                <p>Resposta correta vale 1 ponto, com bônus de rapidez: +3 até 5s, +2 até 10s e +1 até 20s.</p>
                 <div class="quiz-ranking" id="ranking-ao-vivo"></div>
             </section>
         </section>
@@ -107,6 +107,8 @@
         if (ehApresentador) {
             descricao.textContent = 'Você é o apresentador. Acompanhe as perguntas, o placar ao vivo e controle o ritmo do quiz.';
             botaoProxima.hidden = false;
+            painelPontuacao.hidden = false;
+        } else if (jogadorId) {
             painelPontuacao.hidden = false;
         }
 
@@ -204,7 +206,8 @@
                 const dados = await resposta.json();
                 if (!resposta.ok) throw new Error(dados.erro || 'Não foi possível registrar sua resposta.');
 
-                feedback.textContent = dados.mensagem + ' Sua pontuação: ' + dados.pontuacao + (dados.pontuacao === 1 ? ' ponto.' : ' pontos.');
+                feedback.textContent = dados.mensagem + ' Sua pontuação total: ' + dados.pontuacao + (dados.pontuacao === 1 ? ' ponto.' : ' pontos.');
+            carregarPlacar();
                 feedback.style.color = dados.correta ? '#9b72f2' : '#ff8585';
             } catch (erro) {
                 respostaEnviada = false;
@@ -215,7 +218,7 @@
         }
 
         async function carregarPlacar() {
-            if (!ehApresentador || carregandoPlacar || partidaFinalizada) return;
+            if ((!jogadorId && !ehApresentador) || carregandoPlacar || partidaFinalizada) return;
             carregandoPlacar = true;
 
             try {

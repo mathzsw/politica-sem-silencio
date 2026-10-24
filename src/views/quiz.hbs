@@ -7,13 +7,13 @@
     <link rel="stylesheet" href="/css/style.css">
     <style>
         body { background: #111218; color: #f5f5f7; min-height: 100vh; }
-        .quiz-pagina { width: min(760px, 92%); margin: 0 auto; padding: 48px 0; }
+        .quiz-pagina { width: min(900px, 92%); margin: 0 auto; padding: 48px 0; }
         .quiz-cabecalho { margin-bottom: 32px; }
-        .quiz-etiqueta { display: inline-block; color: #c7f36b; font-size: 12px; font-weight: 700; letter-spacing: 2px; margin-bottom: 18px; }
+        .quiz-etiqueta { display: inline-block; color: #9b72f2; font-size: 12px; font-weight: 700; letter-spacing: 2px; margin-bottom: 18px; }
         .quiz-titulo { font-size: clamp(30px, 6vw, 48px); margin: 0 0 12px; }
         .quiz-descricao { color: #a4a4b0; line-height: 1.6; }
         .quiz-cartao { background: #191a24; border: 1px solid #30313e; border-radius: 18px; padding: 30px; }
-        .quiz-progresso { color: #c7f36b; font-size: 13px; font-weight: 700; margin-bottom: 22px; }
+        .quiz-progresso { color: #9b72f2; font-size: 13px; font-weight: 700; margin-bottom: 22px; }
         .quiz-pergunta { font-size: clamp(21px, 4vw, 30px); line-height: 1.4; margin-bottom: 28px; }
         .quiz-alternativas { display: grid; gap: 12px; }
         .quiz-alternativa { width: 100%; padding: 17px; border: 1px solid #393a49; border-radius: 12px; background: #22232f; color: #f5f5f7; text-align: left; font-size: 15px; line-height: 1.5; cursor: pointer; transition: border-color .2s, background .2s; }
@@ -21,22 +21,29 @@
         .quiz-alternativa:disabled { cursor: default; opacity: .8; }
         .quiz-feedback { margin-top: 20px; line-height: 1.6; }
         .quiz-acoes { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
-        .quiz-botao { display: inline-block; border: none; border-radius: 10px; padding: 14px 20px; background: #c7f36b; color: #111218; font-weight: 700; text-decoration: none; cursor: pointer; }
+        .quiz-botao { display: inline-block; border: none; border-radius: 10px; padding: 14px 20px; background: #7c3aed; color: white; font-weight: 700; text-decoration: none; cursor: pointer; }
+        .quiz-botao:hover:not(:disabled) { background: #9b72f2; }
         .quiz-botao:disabled { opacity: .5; cursor: not-allowed; }
         .quiz-ranking { display: grid; gap: 12px; margin-top: 24px; }
         .quiz-ranking-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 17px; background: #22232f; border: 1px solid #393a49; border-radius: 12px; }
-        .quiz-ranking-item:first-child { border-color: #c7f36b; }
-        .quiz-ranking-pontos { color: #c7f36b; font-weight: 700; white-space: nowrap; }
+        .quiz-ranking-item:first-child { border-color: #9b72f2; background: #241c35; }
+        .quiz-ranking-nome { display: flex; align-items: center; gap: 12px; }
+        .quiz-ranking-posicao { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: #302443; color: #c4a9ff; font-weight: 800; }
+        .quiz-ranking-pontos { color: #c4a9ff; font-weight: 700; white-space: nowrap; }
+        .quiz-ranking-vazio { color: #a4a4b0; padding: 16px 0; }
+        .quiz-painel-pontuacao { margin-top: 22px; }
+        .quiz-painel-pontuacao h2 { font-size: 20px; margin-bottom: 8px; }
+        .quiz-painel-pontuacao p { color: #a4a4b0; font-size: 13px; }
         .quiz-erro { color: #ff8585; }
         [hidden] { display: none !important; }
-        @media (max-width: 480px) { .quiz-pagina { padding: 28px 0; } .quiz-cartao { padding: 20px; } }
+        @media (max-width: 480px) { .quiz-pagina { padding: 28px 0; } .quiz-cartao { padding: 20px; } .quiz-ranking-item { padding: 13px; } }
     </style>
 </head>
 <body>
     <main class="quiz-pagina" id="quiz" data-codigo="{{codigo}}">
         <header class="quiz-cabecalho">
             <span class="quiz-etiqueta">POLÍTICA SEM SILÊNCIO</span>
-            <h1 class="quiz-titulo">Hora de <span style="color:#c7f36b">jogar.</span></h1>
+            <h1 class="quiz-titulo">Hora de <span style="color:#9b72f2">jogar.</span></h1>
             <p class="quiz-descricao" id="quiz-descricao">Leia a pergunta e escolha sua resposta.</p>
         </header>
 
@@ -49,12 +56,17 @@
                 <a class="quiz-botao" href="/partidas/{{codigo}}">Sala de espera</a>
                 <button class="quiz-botao" id="proxima-pergunta" type="button" hidden>Próxima pergunta →</button>
             </div>
+            <section class="quiz-painel-pontuacao" id="painel-pontuacao" hidden>
+                <h2>Placar ao vivo</h2>
+                <p>A pontuação é atualizada conforme os participantes acertam.</p>
+                <div class="quiz-ranking" id="ranking-ao-vivo"></div>
+            </section>
         </section>
 
         <section class="quiz-cartao" id="painel-final" hidden>
             <span class="quiz-etiqueta">PARTIDA FINALIZADA</span>
             <h2 class="quiz-titulo">Classificação final</h2>
-            <p class="quiz-descricao">Confira a pontuação dos participantes.</p>
+            <p class="quiz-descricao">Cada resposta correta vale 1 ponto. Veja o resultado final:</p>
             <div class="quiz-ranking" id="ranking-final"></div>
             <div class="quiz-acoes">
                 <a href="/" class="quiz-botao">Voltar ao início</a>
@@ -77,12 +89,15 @@
         const painelPergunta = document.getElementById('painel-pergunta');
         const painelFinal = document.getElementById('painel-final');
         const rankingFinal = document.getElementById('ranking-final');
+        const rankingAoVivo = document.getElementById('ranking-ao-vivo');
+        const painelPontuacao = document.getElementById('painel-pontuacao');
         const descricao = document.getElementById('quiz-descricao');
 
         let perguntaAtualId = null;
         let respostaEnviada = false;
         let carregando = false;
         let partidaFinalizada = false;
+        let carregandoPlacar = false;
 
         if (!jogadorId && !ehApresentador) {
             descricao.textContent = 'Sua identificação não foi encontrada. Entre na partida pelo código antes de responder.';
@@ -90,8 +105,9 @@
         }
 
         if (ehApresentador) {
-            descricao.textContent = 'Você é o apresentador. Acompanhe as perguntas e use “Próxima pergunta” para controlar o ritmo do quiz.';
+            descricao.textContent = 'Você é o apresentador. Acompanhe as perguntas, o placar ao vivo e controle o ritmo do quiz.';
             botaoProxima.hidden = false;
+            painelPontuacao.hidden = false;
         }
 
         async function carregarPergunta() {
@@ -150,7 +166,7 @@
 
                 if (ehApresentador) {
                     botao.disabled = true;
-                    botao.title = 'O apresentador controla o quiz; somente participantes respondem.';
+                    botao.title = 'Somente os participantes respondem.';
                 } else {
                     botao.addEventListener('click', () => enviarResposta(letra));
                     botao.disabled = respostaEnviada;
@@ -163,7 +179,7 @@
             botaoProxima.disabled = false;
             botaoProxima.textContent = 'Próxima pergunta →';
             descricao.textContent = ehApresentador
-                ? 'Você está controlando a partida. Os participantes podem selecionar suas respostas.'
+                ? 'Você controla a partida. A pontuação é atualizada no placar ao vivo.'
                 : 'Selecione uma alternativa. Você só pode responder uma vez por pergunta.';
         }
 
@@ -188,13 +204,62 @@
                 const dados = await resposta.json();
                 if (!resposta.ok) throw new Error(dados.erro || 'Não foi possível registrar sua resposta.');
 
-                feedback.textContent = dados.mensagem + ' Sua pontuação: ' + dados.pontuacao + '.';
-                feedback.style.color = dados.correta ? '#c7f36b' : '#ff8585';
+                feedback.textContent = dados.mensagem + ' Sua pontuação: ' + dados.pontuacao + (dados.pontuacao === 1 ? ' ponto.' : ' pontos.');
+                feedback.style.color = dados.correta ? '#9b72f2' : '#ff8585';
             } catch (erro) {
                 respostaEnviada = false;
                 feedback.textContent = erro.message;
                 feedback.className = 'quiz-feedback quiz-erro';
                 alternativas.querySelectorAll('button').forEach(botao => { botao.disabled = false; });
+            }
+        }
+
+        async function carregarPlacar() {
+            if (!ehApresentador || carregandoPlacar || partidaFinalizada) return;
+            carregandoPlacar = true;
+
+            try {
+                const resposta = await fetch('/partidas/' + encodeURIComponent(codigo) + '/jogadores');
+                const dados = await resposta.json();
+                if (!resposta.ok) throw new Error(dados.erro || 'Não foi possível carregar o placar.');
+
+                const jogadores = (dados.jogadores || []).sort((a, b) => b.pontuacao - a.pontuacao);
+                rankingAoVivo.replaceChildren();
+
+                if (!jogadores.length) {
+                    const vazio = document.createElement('p');
+                    vazio.className = 'quiz-ranking-vazio';
+                    vazio.textContent = 'Aguardando participantes.';
+                    rankingAoVivo.appendChild(vazio);
+                    return;
+                }
+
+                jogadores.forEach((jogador, indice) => {
+                    const item = document.createElement('article');
+                    item.className = 'quiz-ranking-item';
+
+                    const nome = document.createElement('span');
+                    nome.className = 'quiz-ranking-nome';
+
+                    const posicao = document.createElement('span');
+                    posicao.className = 'quiz-ranking-posicao';
+                    posicao.textContent = indice + 1;
+
+                    const textoNome = document.createElement('span');
+                    textoNome.textContent = jogador.nome;
+                    nome.append(posicao, textoNome);
+
+                    const pontos = document.createElement('span');
+                    pontos.className = 'quiz-ranking-pontos';
+                    pontos.textContent = jogador.pontuacao + (jogador.pontuacao === 1 ? ' ponto' : ' pontos');
+
+                    item.append(nome, pontos);
+                    rankingAoVivo.appendChild(item);
+                });
+            } catch (erro) {
+                console.error('Erro ao atualizar placar:', erro);
+            } finally {
+                carregandoPlacar = false;
             }
         }
 
@@ -235,7 +300,10 @@
             rankingFinal.replaceChildren();
 
             if (!jogadores.length) {
-                rankingFinal.textContent = 'Nenhum participante encontrado.';
+                const vazio = document.createElement('p');
+                vazio.className = 'quiz-ranking-vazio';
+                vazio.textContent = 'Nenhum participante encontrado.';
+                rankingFinal.appendChild(vazio);
                 return;
             }
 
@@ -244,7 +312,15 @@
                 item.className = 'quiz-ranking-item';
 
                 const nome = document.createElement('span');
-                nome.textContent = (indice + 1) + 'º lugar — ' + jogador.nome;
+                nome.className = 'quiz-ranking-nome';
+
+                const posicao = document.createElement('span');
+                posicao.className = 'quiz-ranking-posicao';
+                posicao.textContent = indice + 1;
+
+                const textoNome = document.createElement('span');
+                textoNome.textContent = (indice === 0 ? '🏆 ' : '') + jogador.nome;
+                nome.append(posicao, textoNome);
 
                 const pontos = document.createElement('span');
                 pontos.className = 'quiz-ranking-pontos';
@@ -257,7 +333,9 @@
 
         botaoProxima.addEventListener('click', avancarPergunta);
         carregarPergunta();
+        carregarPlacar();
         setInterval(carregarPergunta, 2000);
+        setInterval(carregarPlacar, 2000);
     </script>
 </body>
 </html>

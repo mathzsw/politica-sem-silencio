@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acesso administrativo | Política sem Silêncio</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/extra.css">
 </head>
 <body>
     <header class="cabecalho">
@@ -19,9 +20,7 @@
             <span class="etiqueta"><span class="etiqueta__ponto"></span> ACESSO PROTEGIDO</span>
             <h1>Painel <span>administrativo.</span></h1>
             <p class="admin-descricao">Informe a senha para gerenciar as perguntas do quiz.</p>
-            {{#if erro}}
-                <p class="admin-mensagem admin-mensagem--erro">{{erro}}</p>
-            {{/if}}
+            {{#if erro}}<p class="admin-mensagem admin-mensagem--erro">{{erro}}</p>{{/if}}
             <form action="/admin/login" method="POST" class="admin-formulario">
                 <label for="senha">Senha administrativa</label>
                 <input id="senha" name="senha" type="password" autocomplete="current-password" required autofocus>

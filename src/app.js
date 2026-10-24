@@ -2,6 +2,10 @@ const express = require('express');
 const { engine } = require('express-handlebars');
 const sequelize = require('../database/database');
 
+const perguntasRoutes = require('./routes/perguntas');
+const jogadoresRoutes = require('./routes/jogadores');
+const partidasRoutes = require('./routes/partidas');
+
 require('./models');
 
 const app = express();
@@ -15,7 +19,12 @@ app.set('views', './src/views');
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
 app.use(express.static('src/public'));
+
+app.use('/perguntas', perguntasRoutes);
+app.use('/jogadores', jogadoresRoutes);
+app.use('/partidas', partidasRoutes);
 
 app.get('/', (req, res) => {
     res.render('home', { layout: false });

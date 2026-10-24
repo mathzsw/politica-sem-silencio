@@ -118,7 +118,7 @@ Para publicar, conecte este repositório a um serviço de hospedagem compatível
 **Instituição:** Instituto Federal de Educação, Ciência e Tecnologia de Pernambuco (IFPE) — Campus Jaboatão dos Guararapes.
 
 **Disciplina:** História  
-**Docente:** Jandynea
+**Docente:** Jandynéa de Paula Carvalho Gomes
 
 **Discentes:**
 

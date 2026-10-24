@@ -5,6 +5,7 @@ const sequelize = require('../database/database');
 const perguntasRoutes = require('./routes/perguntas');
 const jogadoresRoutes = require('./routes/jogadores');
 const partidasRoutes = require('./routes/partidas');
+const adminRoutes = require('./routes/admin');
 
 require('./models');
 
@@ -25,13 +26,10 @@ app.use(express.static('src/public'));
 app.use('/perguntas', perguntasRoutes);
 app.use('/jogadores', jogadoresRoutes);
 app.use('/partidas', partidasRoutes);
+app.use('/admin', adminRoutes);
 
 app.get('/entrar', (req, res) => {
     res.render('entrar', { layout: false });
-});
-
-app.get('/admin', (req, res) => {
-    return res.status(404).send('Página não encontrada.');
 });
 
 app.get('/', (req, res) => {

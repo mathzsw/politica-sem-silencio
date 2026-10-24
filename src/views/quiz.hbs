@@ -5,190 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz | Política sem Silêncio</title>
     <link rel="stylesheet" href="/css/style.css">
-
     <style>
-        body {
-            background: #111218;
-            color: #f5f5f7;
-            min-height: 100vh;
-        }
-
-        .quiz-pagina {
-            width: min(760px, 92%);
-            margin: 0 auto;
-            padding: 48px 0;
-        }
-
-        .quiz-cabecalho {
-            margin-bottom: 32px;
-        }
-
-        .quiz-etiqueta {
-            display: inline-block;
-            color: #c7f36b;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            margin-bottom: 18px;
-        }
-
-        .quiz-titulo {
-            font-size: clamp(30px, 6vw, 48px);
-            margin: 0 0 12px;
-        }
-
-        .quiz-descricao {
-            color: #a4a4b0;
-            line-height: 1.6;
-        }
-
-        .quiz-cartao {
-            background: #191a24;
-            border: 1px solid #30313e;
-            border-radius: 18px;
-            padding: 30px;
-        }
-
-        .quiz-progresso {
-            color: #c7f36b;
-            font-size: 13px;
-            font-weight: 700;
-            margin-bottom: 22px;
-        }
-
-        .quiz-pergunta {
-            font-size: clamp(21px, 4vw, 30px);
-            line-height: 1.4;
-            margin-bottom: 28px;
-        }
-
-        .quiz-alternativas {
-            display: grid;
-            gap: 12px;
-        }
-
-        .quiz-alternativa {
-            width: 100%;
-            padding: 17px;
-            border: 1px solid #393a49;
-            border-radius: 12px;
-            background: #22232f;
-            color: #f5f5f7;
-            text-align: left;
-            font-size: 15px;
-            line-height: 1.5;
-            cursor: pointer;
-            transition: border-color 0.2s, background 0.2s;
-        }
-
-        .quiz-alternativa:hover:not(:disabled) {
-            border-color: #7c3aed;
-            background: #292137;
-        }
-
-        .quiz-alternativa:disabled {
-            cursor: default;
-            opacity: 0.8;
-        }
-
-        .quiz-feedback {
-            margin-top: 20px;
-            line-height: 1.6;
-        }
-
-        .quiz-acoes {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 24px;
-        }
-
-        .quiz-botao {
-            border: none;
-            border-radius: 10px;
-            padding: 14px 20px;
-            background: #c7f36b;
-            color: #111218;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .quiz-botao:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .quiz-ranking {
-            display: grid;
-            gap: 12px;
-            margin-top: 24px;
-        }
-
-        .quiz-ranking-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            padding: 17px;
-            background: #22232f;
-            border: 1px solid #393a49;
-            border-radius: 12px;
-        }
-
-        .quiz-ranking-item:first-child {
-            border-color: #c7f36b;
-        }
-
-        .quiz-ranking-pontos {
-            color: #c7f36b;
-            font-weight: 700;
-            white-space: nowrap;
-        }
-
-        .quiz-erro {
-            color: #ff8585;
-        }
-
-        [hidden] {
-            display: none !important;
-        }
-
-        @media (max-width: 480px) {
-            .quiz-pagina {
-                padding: 28px 0;
-            }
-
-            .quiz-cartao {
-                padding: 20px;
-            }
-        }
+        body { background: #111218; color: #f5f5f7; min-height: 100vh; }
+        .quiz-pagina { width: min(760px, 92%); margin: 0 auto; padding: 48px 0; }
+        .quiz-cabecalho { margin-bottom: 32px; }
+        .quiz-etiqueta { display: inline-block; color: #c7f36b; font-size: 12px; font-weight: 700; letter-spacing: 2px; margin-bottom: 18px; }
+        .quiz-titulo { font-size: clamp(30px, 6vw, 48px); margin: 0 0 12px; }
+        .quiz-descricao { color: #a4a4b0; line-height: 1.6; }
+        .quiz-cartao { background: #191a24; border: 1px solid #30313e; border-radius: 18px; padding: 30px; }
+        .quiz-progresso { color: #c7f36b; font-size: 13px; font-weight: 700; margin-bottom: 22px; }
+        .quiz-pergunta { font-size: clamp(21px, 4vw, 30px); line-height: 1.4; margin-bottom: 28px; }
+        .quiz-alternativas { display: grid; gap: 12px; }
+        .quiz-alternativa { width: 100%; padding: 17px; border: 1px solid #393a49; border-radius: 12px; background: #22232f; color: #f5f5f7; text-align: left; font-size: 15px; line-height: 1.5; cursor: pointer; transition: border-color .2s, background .2s; }
+        .quiz-alternativa:hover:not(:disabled) { border-color: #7c3aed; background: #292137; }
+        .quiz-alternativa:disabled { cursor: default; opacity: .8; }
+        .quiz-feedback { margin-top: 20px; line-height: 1.6; }
+        .quiz-acoes { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+        .quiz-botao { display: inline-block; border: none; border-radius: 10px; padding: 14px 20px; background: #c7f36b; color: #111218; font-weight: 700; text-decoration: none; cursor: pointer; }
+        .quiz-botao:disabled { opacity: .5; cursor: not-allowed; }
+        .quiz-ranking { display: grid; gap: 12px; margin-top: 24px; }
+        .quiz-ranking-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 17px; background: #22232f; border: 1px solid #393a49; border-radius: 12px; }
+        .quiz-ranking-item:first-child { border-color: #c7f36b; }
+        .quiz-ranking-pontos { color: #c7f36b; font-weight: 700; white-space: nowrap; }
+        .quiz-erro { color: #ff8585; }
+        [hidden] { display: none !important; }
+        @media (max-width: 480px) { .quiz-pagina { padding: 28px 0; } .quiz-cartao { padding: 20px; } }
     </style>
 </head>
-
 <body>
     <main class="quiz-pagina" id="quiz" data-codigo="{{codigo}}">
         <header class="quiz-cabecalho">
             <span class="quiz-etiqueta">POLÍTICA SEM SILÊNCIO</span>
             <h1 class="quiz-titulo">Hora de <span style="color:#c7f36b">jogar.</span></h1>
-            <p class="quiz-descricao" id="quiz-descricao">
-                Leia a pergunta e escolha sua resposta.
-            </p>
+            <p class="quiz-descricao" id="quiz-descricao">Leia a pergunta e escolha sua resposta.</p>
         </header>
 
         <section class="quiz-cartao" id="painel-pergunta">
-            <p class="quiz-progresso" id="progresso-pergunta">
-                Carregando pergunta...
-            </p>
-
+            <p class="quiz-progresso" id="progresso-pergunta">Carregando pergunta...</p>
             <h2 class="quiz-pergunta" id="enunciado-pergunta"></h2>
-
             <div class="quiz-alternativas" id="alternativas"></div>
-
             <p class="quiz-feedback" id="feedback-resposta" role="status"></p>
-
             <div class="quiz-acoes">
-                <button class="quiz-botao" id="proxima-pergunta" type="button" hidden>
-                    Próxima pergunta →
-                </button>
+                <a class="quiz-botao" href="/partidas/{{codigo}}">Sala de espera</a>
+                <button class="quiz-botao" id="proxima-pergunta" type="button" hidden>Próxima pergunta →</button>
             </div>
         </section>
 
@@ -198,9 +57,7 @@
             <p class="quiz-descricao">Confira a pontuação dos participantes.</p>
             <div class="quiz-ranking" id="ranking-final"></div>
             <div class="quiz-acoes">
-                <a href="/" class="quiz-botao" style="text-decoration:none">
-                    Voltar ao início
-                </a>
+                <a href="/" class="quiz-botao">Voltar ao início</a>
             </div>
         </section>
     </main>
@@ -208,9 +65,9 @@
     <script>
         const quiz = document.getElementById('quiz');
         const codigo = quiz.dataset.codigo;
-
-        const jogadorId = localStorage.getItem(`jogador-${codigo}`);
-        const chaveApresentador = sessionStorage.getItem(`chave-apresentador-${codigo}`);
+        const jogadorId = localStorage.getItem('jogador-' + codigo);
+        const chaveApresentador = sessionStorage.getItem('chave-apresentador-' + codigo);
+        const ehApresentador = Boolean(chaveApresentador);
 
         const progresso = document.getElementById('progresso-pergunta');
         const enunciado = document.getElementById('enunciado-pergunta');
@@ -227,35 +84,28 @@
         let carregando = false;
         let partidaFinalizada = false;
 
-        if (!jogadorId) {
-            descricao.textContent = 'Não encontramos sua identificação nesta partida. Entre novamente pelo código da sala.';
+        if (!jogadorId && !ehApresentador) {
+            descricao.textContent = 'Sua identificação não foi encontrada. Entre na partida pelo código antes de responder.';
             painelPergunta.hidden = true;
         }
 
-        if (chaveApresentador) {
+        if (ehApresentador) {
+            descricao.textContent = 'Você é o apresentador. Acompanhe as perguntas e use “Próxima pergunta” para controlar o ritmo do quiz.';
             botaoProxima.hidden = false;
         }
 
         async function carregarPergunta() {
-            if (carregando || partidaFinalizada || !jogadorId) {
-                return;
-            }
-
+            if (carregando || partidaFinalizada || (!jogadorId && !ehApresentador)) return;
             carregando = true;
 
             try {
-                const resposta = await fetch(
-                    `/partidas/${encodeURIComponent(codigo)}/pergunta`
-                );
-
+                const resposta = await fetch('/partidas/' + encodeURIComponent(codigo) + '/pergunta');
                 const dados = await resposta.json();
 
-                if (!resposta.ok) {
-                    throw new Error(dados.erro || 'Não foi possível carregar a pergunta.');
-                }
+                if (!resposta.ok) throw new Error(dados.erro || 'Não foi possível carregar a pergunta.');
 
                 if (dados.status === 'aguardando') {
-                    window.location.href = `/partidas/${encodeURIComponent(codigo)}`;
+                    window.location.replace('/partidas/' + encodeURIComponent(codigo));
                     return;
                 }
 
@@ -264,11 +114,7 @@
                     return;
                 }
 
-                if (!dados.pergunta) {
-                    return;
-                }
-
-                if (dados.pergunta.id !== perguntaAtualId) {
+                if (dados.pergunta && dados.pergunta.id !== perguntaAtualId) {
                     mostrarPergunta(dados);
                 }
             } catch (erro) {
@@ -282,14 +128,11 @@
         function mostrarPergunta(dados) {
             perguntaAtualId = dados.pergunta.id;
             respostaEnviada = false;
-
-            progresso.textContent =
-                `PERGUNTA ${dados.numeroPergunta} DE ${dados.totalPerguntas}`;
-
+            progresso.textContent = 'PERGUNTA ' + dados.numeroPergunta + ' DE ' + dados.totalPerguntas;
             enunciado.textContent = dados.pergunta.enunciado;
             feedback.textContent = '';
             feedback.className = 'quiz-feedback';
-
+            feedback.style.color = '';
             alternativas.replaceChildren();
 
             const opcoes = [
@@ -301,105 +144,79 @@
 
             opcoes.forEach(([letra, texto]) => {
                 const botao = document.createElement('button');
-
                 botao.type = 'button';
                 botao.className = 'quiz-alternativa';
-                botao.textContent = `${letra} — ${texto}`;
+                botao.textContent = letra + ' — ' + texto;
 
-                botao.addEventListener('click', () => {
-                    enviarResposta(letra);
-                });
+                if (ehApresentador) {
+                    botao.disabled = true;
+                    botao.title = 'O apresentador controla o quiz; somente participantes respondem.';
+                } else {
+                    botao.addEventListener('click', () => enviarResposta(letra));
+                    botao.disabled = respostaEnviada;
+                }
 
                 alternativas.appendChild(botao);
             });
 
-            botaoProxima.hidden = !chaveApresentador;
+            botaoProxima.hidden = !ehApresentador;
             botaoProxima.disabled = false;
+            botaoProxima.textContent = 'Próxima pergunta →';
+            descricao.textContent = ehApresentador
+                ? 'Você está controlando a partida. Os participantes podem selecionar suas respostas.'
+                : 'Selecione uma alternativa. Você só pode responder uma vez por pergunta.';
         }
 
         async function enviarResposta(alternativa) {
-            if (respostaEnviada || !perguntaAtualId || !jogadorId) {
-                return;
-            }
+            if (ehApresentador || respostaEnviada || !perguntaAtualId || !jogadorId) return;
 
             respostaEnviada = true;
-
-            const botoes = alternativas.querySelectorAll('button');
-            botoes.forEach(botao => {
-                botao.disabled = true;
-            });
+            alternativas.querySelectorAll('button').forEach(botao => { botao.disabled = true; });
+            feedback.textContent = 'Verificando resposta...';
 
             try {
-                const resposta = await fetch(
-                    `/partidas/${encodeURIComponent(codigo)}/responder`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            jogadorId: Number(jogadorId),
-                            perguntaId: perguntaAtualId,
-                            alternativa
-                        })
-                    }
-                );
+                const resposta = await fetch('/partidas/' + encodeURIComponent(codigo) + '/responder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jogadorId: Number(jogadorId),
+                        perguntaId: perguntaAtualId,
+                        alternativa
+                    })
+                });
 
                 const dados = await resposta.json();
+                if (!resposta.ok) throw new Error(dados.erro || 'Não foi possível registrar sua resposta.');
 
-                if (!resposta.ok) {
-                    throw new Error(dados.erro || 'Não foi possível registrar sua resposta.');
-                }
-
-                feedback.textContent =
-                    `${dados.mensagem} Sua pontuação: ${dados.pontuacao}.`;
-
-                feedback.className = 'quiz-feedback';
-
-                if (dados.correta) {
-                    feedback.style.color = '#c7f36b';
-                } else {
-                    feedback.style.color = '#ff8585';
-                }
+                feedback.textContent = dados.mensagem + ' Sua pontuação: ' + dados.pontuacao + '.';
+                feedback.style.color = dados.correta ? '#c7f36b' : '#ff8585';
             } catch (erro) {
                 respostaEnviada = false;
                 feedback.textContent = erro.message;
                 feedback.className = 'quiz-feedback quiz-erro';
-
-                botoes.forEach(botao => {
-                    botao.disabled = false;
-                });
+                alternativas.querySelectorAll('button').forEach(botao => { botao.disabled = false; });
             }
         }
 
         async function avancarPergunta() {
-            if (!chaveApresentador || botaoProxima.disabled) {
-                return;
-            }
+            if (!ehApresentador || botaoProxima.disabled) return;
 
             botaoProxima.disabled = true;
+            botaoProxima.textContent = 'Avançando...';
 
             try {
-                const resposta = await fetch(
-                    `/partidas/${encodeURIComponent(codigo)}/proxima`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Chave-Apresentador': chaveApresentador
-                        }
-                    }
-                );
+                const resposta = await fetch('/partidas/' + encodeURIComponent(codigo) + '/proxima', {
+                    method: 'POST',
+                    headers: { 'X-Chave-Apresentador': chaveApresentador }
+                });
 
                 const dados = await resposta.json();
-
-                if (!resposta.ok) {
-                    throw new Error(dados.erro || 'Não foi possível avançar.');
-                }
+                if (!resposta.ok) throw new Error(dados.erro || 'Não foi possível avançar.');
 
                 if (dados.status === 'finalizada') {
                     await carregarPergunta();
                 } else {
+                    perguntaAtualId = null;
                     await carregarPergunta();
                 }
             } catch (erro) {
@@ -407,6 +224,7 @@
                 feedback.className = 'quiz-feedback quiz-erro';
             } finally {
                 botaoProxima.disabled = false;
+                if (!partidaFinalizada) botaoProxima.textContent = 'Próxima pergunta →';
             }
         }
 
@@ -414,7 +232,6 @@
             partidaFinalizada = true;
             painelPergunta.hidden = true;
             painelFinal.hidden = false;
-
             rankingFinal.replaceChildren();
 
             if (!jogadores.length) {
@@ -427,12 +244,11 @@
                 item.className = 'quiz-ranking-item';
 
                 const nome = document.createElement('span');
-                nome.textContent = `${indice + 1}º lugar — ${jogador.nome}`;
+                nome.textContent = (indice + 1) + 'º lugar — ' + jogador.nome;
 
                 const pontos = document.createElement('span');
                 pontos.className = 'quiz-ranking-pontos';
-                pontos.textContent =
-                    `${jogador.pontuacao} ${jogador.pontuacao === 1 ? 'ponto' : 'pontos'}`;
+                pontos.textContent = jogador.pontuacao + (jogador.pontuacao === 1 ? ' ponto' : ' pontos');
 
                 item.append(nome, pontos);
                 rankingFinal.appendChild(item);
@@ -440,7 +256,6 @@
         }
 
         botaoProxima.addEventListener('click', avancarPergunta);
-
         carregarPergunta();
         setInterval(carregarPergunta, 2000);
     </script>

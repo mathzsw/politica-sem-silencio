@@ -2,6 +2,8 @@ const express = require('express');
 const { engine } = require('express-handlebars');
 const sequelize = require('../database/database');
 
+require('./models');
+
 const app = express();
 
 app.engine('hbs', engine({

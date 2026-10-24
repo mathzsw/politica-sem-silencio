@@ -1,0 +1,40 @@
+const express = require('express');
+const { engine } = require('express-handlebars');
+const sequelize = require('../database/database');
+
+const app = express();
+
+app.engine('hbs', engine({
+    extname: '.hbs'
+}));
+
+app.set('view engine', 'hbs');
+app.set('views', './src/views');
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static('src/public'));
+
+app.get('/', (req, res) => {
+    res.render('home', { layout: false });
+});
+
+const PORT = 3001;
+
+async function startServer() {
+    try {
+        await sequelize.authenticate();
+
+        console.log('Banco de dados conectado.');
+
+        await sequelize.sync();
+
+        app.listen(PORT, () => {
+            console.log(`Política sem Silêncio rodando em http://localhost:${PORT}`);
+        });
+    } catch (error) {
+        console.error('Erro ao conectar ao banco:', error);
+    }
+}
+
+startServer();

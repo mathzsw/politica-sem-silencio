@@ -26,12 +26,12 @@ A proposta é transformar o conteúdo pesquisado em uma atividade participativa:
 
 ## Segurança
 
-- O painel `/admin` não está disponível publicamente.
-- A API bloqueia solicitações públicas de cadastro de perguntas (`POST /perguntas`).
+- O painel `/admin` exige senha administrativa configurada no servidor.
+- O formulário autenticado permite cadastrar perguntas; solicitações públicas de cadastro pela API (`POST /perguntas`) continuam bloqueadas.
 - Somente quem criou uma sala, usando a chave privada gerada para aquela partida, pode iniciá-la ou avançar as perguntas.
 - A chave do apresentador é armazenada no banco como hash; ela não deve ser compartilhada com os participantes.
 
-O cadastro público de perguntas está desativado. Para preparar o conteúdo do quiz, a equipe responsável deve inserir as perguntas por um procedimento administrativo privado, sem expor um formulário de cadastro aos participantes.
+O cadastro público de perguntas está desativado. Para cadastrar perguntas, configure a variável de ambiente `ADMIN_PASSWORD` com a senha administrativa e acesse `/admin`. As instruções estão em [ADMIN_SETUP.md](ADMIN_SETUP.md). A senha não fica gravada no código do repositório.
 
 ## Tecnologias
 
@@ -64,11 +64,14 @@ Instale as dependências:
 npm install
 ```
 
-Inicie o servidor:
+Configure a senha do painel administrativo e inicie o servidor. No Windows PowerShell:
 
-```bash
+```powershell
+$env:ADMIN_PASSWORD="ifpecjbg"
 npm start
 ```
+
+Em hospedagem, defina `ADMIN_PASSWORD` nas variáveis de ambiente do serviço.
 
 Abra [http://localhost:3001](http://localhost:3001) no navegador.
 

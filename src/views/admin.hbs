@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerenciar perguntas | Política sem Silêncio</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/extra.css">
 </head>
 <body>
     <header class="cabecalho">
@@ -21,23 +22,17 @@
             <span class="etiqueta"><span class="etiqueta__ponto"></span> ÁREA RESTRITA</span>
             <h1>Gerenciar <span>perguntas.</span></h1>
             <p class="admin-descricao">As perguntas cadastradas aqui serão usadas nas partidas do quiz.</p>
-            {{#if sucesso}}
-                <p class="admin-mensagem admin-mensagem--sucesso">{{sucesso}}</p>
-            {{/if}}
-            {{#if erro}}
-                <p class="admin-mensagem admin-mensagem--erro">{{erro}}</p>
-            {{/if}}
+            {{#if sucesso}}<p class="admin-mensagem admin-mensagem--sucesso">{{sucesso}}</p>{{/if}}
+            {{#if erro}}<p class="admin-mensagem admin-mensagem--erro">{{erro}}</p>{{/if}}
             <form action="/admin/perguntas" method="POST" class="admin-formulario">
                 <label for="enunciado">Pergunta</label>
                 <textarea id="enunciado" name="enunciado" rows="3" required></textarea>
-
                 <div class="admin-alternativas">
                     <div><label for="alternativaA">Alternativa A</label><input id="alternativaA" name="alternativaA" required></div>
                     <div><label for="alternativaB">Alternativa B</label><input id="alternativaB" name="alternativaB" required></div>
                     <div><label for="alternativaC">Alternativa C</label><input id="alternativaC" name="alternativaC" required></div>
                     <div><label for="alternativaD">Alternativa D</label><input id="alternativaD" name="alternativaD" required></div>
                 </div>
-
                 <label for="respostaCorreta">Resposta correta</label>
                 <select id="respostaCorreta" name="respostaCorreta" required>
                     <option value="">Selecione a alternativa correta</option>

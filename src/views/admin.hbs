@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar perguntas | Política sem Silêncio</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header class="cabecalho">
+        <a href="/" class="marca">
+            <span class="marca__icone">&gt;</span>
+            <span class="marca__texto">POLÍTICA<strong>SEM SILÊNCIO</strong></span>
+        </a>
+        <form action="/admin/sair" method="POST">
+            <button class="botao botao--secundario" type="submit">Sair</button>
+        </form>
+    </header>
+    <main class="pagina admin-pagina">
+        <section class="admin-cartao admin-cartao--largo">
+            <span class="etiqueta"><span class="etiqueta__ponto"></span> ÁREA RESTRITA</span>
+            <h1>Gerenciar <span>perguntas.</span></h1>
+            <p class="admin-descricao">As perguntas cadastradas aqui serão usadas nas partidas do quiz.</p>
+            {{#if sucesso}}
+                <p class="admin-mensagem admin-mensagem--sucesso">{{sucesso}}</p>
+            {{/if}}
+            {{#if erro}}
+                <p class="admin-mensagem admin-mensagem--erro">{{erro}}</p>
+            {{/if}}
+            <form action="/admin/perguntas" method="POST" class="admin-formulario">
+                <label for="enunciado">Pergunta</label>
+                <textarea id="enunciado" name="enunciado" rows="3" required></textarea>
+
+                <div class="admin-alternativas">
+                    <div><label for="alternativaA">Alternativa A</label><input id="alternativaA" name="alternativaA" required></div>
+                    <div><label for="alternativaB">Alternativa B</label><input id="alternativaB" name="alternativaB" required></div>
+                    <div><label for="alternativaC">Alternativa C</label><input id="alternativaC" name="alternativaC" required></div>
+                    <div><label for="alternativaD">Alternativa D</label><input id="alternativaD" name="alternativaD" required></div>
+                </div>
+
+                <label for="respostaCorreta">Resposta correta</label>
+                <select id="respostaCorreta" name="respostaCorreta" required>
+                    <option value="">Selecione a alternativa correta</option>
+                    <option value="A">Alternativa A</option>
+                    <option value="B">Alternativa B</option>
+                    <option value="C">Alternativa C</option>
+                    <option value="D">Alternativa D</option>
+                </select>
+                <button class="botao botao--principal" type="submit">Cadastrar pergunta <span aria-hidden="true">+</span></button>
+            </form>
+            <a class="admin-voltar" href="/">Voltar para a página inicial</a>
+        </section>
+    </main>
+</body>
+</html>

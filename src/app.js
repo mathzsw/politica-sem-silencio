@@ -26,6 +26,14 @@ app.use('/perguntas', perguntasRoutes);
 app.use('/jogadores', jogadoresRoutes);
 app.use('/partidas', partidasRoutes);
 
+app.get('/entrar', (req, res) => {
+    res.render('entrar', { layout: false });
+});
+
+app.get('/admin', (req, res) => {
+    res.render('admin', { layout: false });
+});
+
 app.get('/', (req, res) => {
     res.render('home', { layout: false });
 });

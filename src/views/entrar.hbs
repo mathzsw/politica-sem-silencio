@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar | Política sem Silêncio</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <main class="pagina">
+        <section class="apresentacao">
+            <div class="apresentacao__conteudo">
+                <span class="etiqueta">
+                    <span class="etiqueta__ponto"></span>
+                    ENTRAR NO QUIZ
+                </span>
+
+                <h1>Entre no <span>jogo.</span></h1>
+
+                <p class="apresentacao__descricao">
+                    Digite o código da partida e escolha seu nome.
+                </p>
+
+                <form id="form-entrar">
+                    <label for="codigo">Código da partida</label>
+                    <input type="text" id="codigo" placeholder="Ex.: KN3EGW" maxlength="6" required>
+
+                    <label for="nome">Seu nome</label>
+                    <input type="text" id="nome" placeholder="Como aparecerá no ranking" maxlength="30" required>
+
+                    <button class="botao botao--principal" type="submit">
+                        Entrar na partida →
+                    </button>
+
+                    <p id="mensagem" role="alert"></p>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const form = document.getElementById('form-entrar');
+        const mensagem = document.getElementById('mensagem');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const codigo = document.getElementById('codigo').value.trim().toUpperCase();
+            const nome = document.getElementById('nome').value.trim();
+
+            if (!nome || !codigo) {
+                mensagem.textContent = 'Preencha todos os campos.';
+                return;
+            }
+
+            mensagem.textContent = 'Entrando na partida...';
+
+            try {
+                const resposta = await fetch(`/jogadores/${encodeURIComponent(codigo)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nome })
+                });
+
+                const resultado = await resposta.json();
+
+                if (!resposta.ok) {
+                    mensagem.textContent = resultado.erro || 'Não foi possível entrar.';
+                    return;
+                }
+
+                localStorage.setItem(`jogador-${codigo}`, resultado.jogador.id);
+                localStorage.setItem(`nome-jogador-${codigo}`, resultado.jogador.nome);
+
+                window.location.href = `/partidas/${encodeURIComponent(codigo)}`;
+            } catch (erro) {
+                mensagem.textContent = 'Erro de conexão. Tente novamente.';
+            }
+        });
+    </script>
+</body>
+</html>

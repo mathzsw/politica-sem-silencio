@@ -1,14 +1,195 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Política sem Silêncio</title>
+
+    <meta
+        name="description"
+        content="Um quiz interativo sobre violência política de gênero e raça no ambiente digital."
+    >
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="/css/style.css">
 </head>
+
 <body>
-    <main>
-        <h1>Política sem Silêncio</h1>
-        <p>Quiz sobre violência política de gênero e raça no ambiente digital.</p>
+
+    <header class="cabecalho">
+
+        <a href="/" class="marca">
+            <span class="marca__icone">&gt;</span>
+
+            <span class="marca__texto">
+                POLÍTICA
+                <strong>SEM SILÊNCIO</strong>
+            </span>
+        </a>
+
+        <span class="cabecalho__rotulo">
+            PROJETO DE HISTÓRIA
+        </span>
+
+    </header>
+
+    <main class="pagina">
+
+        <section class="apresentacao">
+
+            <div class="apresentacao__conteudo">
+
+                <span class="etiqueta">
+                    <span class="etiqueta__ponto"></span>
+                    QUIZ INTERATIVO
+                </span>
+
+                <h1>
+                    Conhecimento
+                    <span>em jogo.</span>
+                </h1>
+
+                <p class="apresentacao__descricao">
+                    Você conhece as formas de violência política
+                    de gênero e raça no ambiente digital?
+                </p>
+
+                <p class="apresentacao__apoio">
+                    Questione o que parece normal. Reconheça o que
+                    não pode ser silenciado.
+                </p>
+
+                <div class="acoes">
+                    <button
+                        class="botao botao--principal"
+                        id="criar-partida"
+                        type="button"
+                    >
+                        Criar partida
+                        <span aria-hidden="true">&rarr;</span>
+                    </button>
+
+                    <a href="/entrar" class="botao botao--secundario">
+                        Entrar na partida
+                    </a>
+                </div>
+
+                <span class="apresentacao__nota">
+                    Aprender também é uma forma de resistência.
+                </span>
+
+            </div>
+
+            <aside class="painel">
+
+                <div class="painel__cabecalho">
+                    <span>POLÍTICA SEM SILÊNCIO</span>
+                    <span class="painel__status">● ONLINE</span>
+                </div>
+
+                <div class="painel__conteudo">
+
+                    <span class="painel__numero">01</span>
+
+                    <span class="painel__legenda">
+                        CONHECIMENTO EM JOGO
+                    </span>
+
+                    <h2>
+                        Gênero.
+                        <br>
+                        Raça.
+                        <br>
+                        Poder.
+                    </h2>
+
+                    <p>
+                        Entender o problema é o primeiro passo
+                        para enfrentá-lo.
+                    </p>
+
+                    <div class="painel__barra">
+                        <span></span>
+                    </div>
+
+                    <div class="painel__rodape">
+                        <span>CONHECER</span>
+                        <span>QUESTIONAR</span>
+                        <span>AGIR</span>
+                    </div>
+
+                </div>
+
+                <span class="painel__decoracao" aria-hidden="true">
+                    +
+                </span>
+
+            </aside>
+
+        </section>
+
+        <footer class="rodape">
+            <span>POLÍTICA SEM SILÊNCIO</span>
+            <span>GÊNERO · RAÇA · AMBIENTE DIGITAL</span>
+        </footer>
+
     </main>
+
+    <script>
+        const botaoCriar = document.getElementById('criar-partida');
+
+        botaoCriar.addEventListener('click', async () => {
+            botaoCriar.disabled = true;
+            botaoCriar.setAttribute('aria-busy', 'true');
+
+            try {
+                const resposta = await fetch('/partidas', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const partida = await resposta.json();
+
+                if (!resposta.ok) {
+                    alert(partida.erro || 'Não foi possível criar a partida.');
+                    return;
+                }
+
+                if (!partida.codigo || !partida.chaveApresentador) {
+                    alert(
+                        'O servidor não retornou a chave de apresentador. Reinicie o servidor e tente novamente.'
+                    );
+                    return;
+                }
+
+                sessionStorage.setItem(
+                    `chave-apresentador-${partida.codigo}`,
+                    partida.chaveApresentador
+                );
+
+                window.location.href =
+                    `/partidas/${encodeURIComponent(partida.codigo)}`;
+            } catch (error) {
+                alert('Erro ao criar partida.');
+                console.error(error);
+            } finally {
+                botaoCriar.disabled = false;
+                botaoCriar.removeAttribute('aria-busy');
+            }
+        });
+    </script>
+
 </body>
+
 </html>

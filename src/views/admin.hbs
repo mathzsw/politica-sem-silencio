@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar perguntas | Política sem Silêncio</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            background: #111218;
+            color: #f5f5f7;
+            font-family: Arial, sans-serif;
+            padding: 30px 20px;
+        }
+
+```
+    main {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    h1 {
+        color: #7c3aed;
+    }
+
+    form {
+        display: grid;
+        gap: 14px;
+        margin-top: 25px;
+    }
+
+    input, textarea, select, button {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 13px;
+        border-radius: 8px;
+        border: 1px solid #343541;
+        font: inherit;
+    }
+
+    input, textarea, select {
+        background: #1b1c25;
+        color: #f5f5f7;
+    }
+
+    button {
+        background: #7c3aed;
+        color: #ffffff;
+        font-weight: bold;
+        cursor: pointer;
+        border: none;
+    }
+
+    button:hover {
+        background: #6d28d9;
+    }
+
+    #mensagem {
+        margin-top: 18px;
+    }
+
+    a {
+        color: #a78bfa;
+    }
+</style>
+```
+
+</head>
+<body>
+    <main>
+        <h1>Cadastrar perguntas</h1>
+        <p>Política sem Silêncio — painel de perguntas do quiz.</p>
+
+```
+    <form id="form-pergunta">
+        <textarea name="enunciado" placeholder="Digite o enunciado da pergunta" required rows="3"></textarea>
+
+        <input name="alternativaA" placeholder="Alternativa A" required>
+        <input name="alternativaB" placeholder="Alternativa B" required>
+        <input name="alternativaC" placeholder="Alternativa C" required>
+        <input name="alternativaD" placeholder="Alternativa D" required>
+
+        <select name="respostaCorreta" required>
+            <option value="">Selecione a resposta correta</option>
+            <option value="A">Alternativa A</option>
+            <option value="B">Alternativa B</option>
+            <option value="C">Alternativa C</option>
+            <option value="D">Alternativa D</option>
+        </select>
+
+        <button type="submit">Salvar pergunta</button>
+    </form>
+
+    <p id="mensagem"></p>
+    <p><a href="/">Voltar ao início</a></p>
+</main>
+
+<script>
+    const formulario = document.getElementById('form-pergunta');
+    const mensagem = document.getElementById('mensagem');
+
+    formulario.addEventListener('submit', async (evento) => {
+        evento.preventDefault();
+
+        const dados = Object.fromEntries(new FormData(formulario));
+
+        try {
+            const resposta = await fetch('/perguntas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dados)
+            });
+
+            const resultado = await resposta.json();
+
+            if (!resposta.ok) {
+                mensagem.textContent = resultado.erro || 'Não foi possível salvar.';
+                return;
+            }
+
+            mensagem.textContent = 'Pergunta cadastrada com sucesso!';
+            formulario.reset();
+        } catch (erro) {
+            mensagem.textContent = 'Erro de conexão com o servidor.';
+        }
+    });
+</script>
+```
+
+</body>
+</html>

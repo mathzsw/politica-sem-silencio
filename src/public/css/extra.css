@@ -175,3 +175,174 @@
         gap: 8px;
     }
 }
+
+/* Resumo expansível da apresentação */
+.resumo-apresentacao {
+    padding: 74px 0 82px;
+    border-top: 1px solid var(--cor-borda);
+}
+.resumo-apresentacao__cabecalho {
+    max-width: 760px;
+    margin-bottom: 28px;
+}
+.resumo-apresentacao__cabecalho h2 {
+    font-family: var(--fonte-titulo);
+    font-size: clamp(32px, 4vw, 48px);
+    line-height: 1.15;
+    letter-spacing: -1.5px;
+}
+.resumo-apresentacao__cabecalho h2 span {
+    display: block;
+    color: var(--cor-roxo-claro);
+}
+.resumo-apresentacao__cabecalho > p {
+    max-width: 720px;
+    margin-top: 16px;
+    color: var(--cor-texto-secundario);
+    font-size: 14px;
+    line-height: 1.8;
+}
+.resumo-pesquisa {
+    overflow: hidden;
+    background: rgba(25, 26, 35, 0.78);
+    border: 1px solid var(--cor-borda);
+    border-radius: 14px;
+}
+.resumo-pesquisa > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 22px 24px;
+    list-style: none;
+    cursor: pointer;
+}
+.resumo-pesquisa > summary::-webkit-details-marker,
+.resumo-pesquisa__topico > summary::-webkit-details-marker {
+    display: none;
+}
+.resumo-pesquisa > summary strong,
+.resumo-pesquisa > summary small {
+    display: block;
+}
+.resumo-pesquisa > summary strong {
+    font-size: 15px;
+    line-height: 1.5;
+}
+.resumo-pesquisa > summary small {
+    margin-top: 5px;
+    color: var(--cor-texto-secundario);
+    font-size: 12px;
+    line-height: 1.6;
+}
+.resumo-pesquisa > summary:hover strong,
+.resumo-pesquisa__topico > summary:hover {
+    color: var(--cor-roxo-claro);
+}
+.resumo-pesquisa__controle {
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(155, 114, 242, 0.45);
+    border-radius: 10px;
+    color: var(--cor-roxo-claro);
+}
+.resumo-pesquisa__controle::before {
+    content: "+";
+    font-size: 23px;
+    line-height: 1;
+}
+.resumo-pesquisa[open] > summary {
+    border-bottom: 1px solid var(--cor-borda);
+}
+.resumo-pesquisa[open] > summary .resumo-pesquisa__controle::before {
+    content: "−";
+}
+.resumo-pesquisa__conteudo {
+    padding: 24px;
+}
+.resumo-pesquisa__introducao {
+    margin-bottom: 22px;
+    color: #dedee7;
+    font-size: 14px;
+    line-height: 1.9;
+}
+.resumo-pesquisa__topico {
+    border-top: 1px solid var(--cor-borda);
+}
+.resumo-pesquisa__topico > summary {
+    position: relative;
+    padding: 18px 30px 18px 0;
+    color: var(--cor-branco);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.6;
+    list-style: none;
+    cursor: pointer;
+}
+.resumo-pesquisa__topico > summary::after {
+    position: absolute;
+    top: 50%;
+    right: 4px;
+    transform: translateY(-50%);
+    content: "+";
+    color: var(--cor-roxo-claro);
+    font-size: 22px;
+    font-weight: 400;
+}
+.resumo-pesquisa__topico[open] > summary::after {
+    content: "−";
+}
+.resumo-pesquisa__texto {
+    padding: 0 0 20px;
+    color: var(--cor-texto-secundario);
+    font-size: 13px;
+    line-height: 1.9;
+}
+.resumo-pesquisa__texto p + p {
+    margin-top: 12px;
+}
+.resumo-pesquisa__texto strong {
+    color: var(--cor-branco);
+}
+.resumo-pesquisa__fontes {
+    display: grid;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 20px;
+    background: rgba(17, 18, 24, 0.65);
+    border: 1px solid var(--cor-borda);
+    border-radius: 10px;
+}
+.resumo-pesquisa__fontes strong {
+    margin-bottom: 3px;
+    font-size: 12px;
+}
+.resumo-pesquisa__fontes a {
+    color: #c4a9ff;
+    font-size: 12px;
+    line-height: 1.6;
+    text-decoration: underline;
+    text-decoration-color: rgba(196, 169, 255, 0.35);
+    text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+}
+.resumo-pesquisa__fontes a:hover {
+    color: var(--cor-branco);
+}
+@media (max-width: 600px) {
+    .resumo-apresentacao {
+        padding: 55px 0 62px;
+    }
+    .resumo-pesquisa > summary {
+        padding: 18px;
+    }
+    .resumo-pesquisa__conteudo {
+        padding: 18px;
+    }
+    .resumo-pesquisa__fontes {
+        padding: 15px;
+    }
+}

@@ -64,8 +64,8 @@ async function verificarApresentador(req, partida) {
     return crypto.timingSafeEqual(hashRecebido, hashArmazenado);
 }
 
-async function buscarRankingDetalhado(partida, perguntas) {
-    const jogadores = await Jogador.findAll({
+async function buscarRankingPublico(partida) {
+    return Jogador.findAll({
         where: { partidaId: partida.id },
         attributes: ['id', 'nome', 'pontuacao'],
         order: [
@@ -73,56 +73,79 @@ async function buscarRankingDetalhado(partida, perguntas) {
             ['createdAt', 'ASC']
         ]
     });
+}
 
+function tokenValido(token) {
+    return typeof token === 'string' && /^[a-f0-9]{64}$/i.test(token);
+}
+
+function tokensIguais(tokenRecebido, tokenArmazenado) {
+    if (!tokenValido(tokenRecebido) || !tokenValido(tokenArmazenado)) return false;
+
+    const recebido = Buffer.from(tokenRecebido, 'hex');
+    const armazenado = Buffer.from(tokenArmazenado, 'hex');
+
+    return recebido.length === armazenado.length &&
+        crypto.timingSafeEqual(recebido, armazenado);
+}
+
+async function buscarJogadorAutenticado(req, partida, jogadorId) {
+    const token = req.get('x-chave-jogador');
+
+    if (!tokenValido(token) || !Number.isInteger(Number(jogadorId))) {
+        return null;
+    }
+
+    const jogador = await Jogador.findOne({
+        where: {
+            id: Number(jogadorId),
+            partidaId: partida.id
+        },
+        attributes: ['id', 'nome', 'pontuacao', 'chaveAcesso']
+    });
+
+    if (!jogador || !tokensIguais(token, jogador.chaveAcesso)) {
+        return null;
+    }
+
+    return jogador;
+}
+
+async function buscarRespostasIndividuais(partida, jogador, perguntas) {
     const respostas = await Resposta.findAll({
-        where: { partidaId: partida.id },
+        where: {
+            partidaId: partida.id,
+            jogadorId: jogador.id
+        },
         attributes: [
-            'jogadorId',
             'perguntaId',
             'alternativaEscolhida',
             'correta'
         ]
     });
 
-    const respostasPorJogador = new Map();
+    const respostasPorPergunta = new Map(
+        respostas.map(resposta => [Number(resposta.perguntaId), resposta])
+    );
 
-    for (const resposta of respostas) {
-        if (!respostasPorJogador.has(resposta.jogadorId)) {
-            respostasPorJogador.set(resposta.jogadorId, new Map());
-        }
-
-        respostasPorJogador
-            .get(resposta.jogadorId)
-            .set(resposta.perguntaId, resposta);
-    }
-
-    return jogadores.map(jogador => {
-        const respostasDoJogador = respostasPorJogador.get(jogador.id) || new Map();
+    return perguntas.map((pergunta, indice) => {
+        const resposta = respostasPorPergunta.get(Number(pergunta.id));
+        const alternativas = {
+            A: pergunta.alternativaA,
+            B: pergunta.alternativaB,
+            C: pergunta.alternativaC,
+            D: pergunta.alternativaD
+        };
 
         return {
-            id: jogador.id,
-            nome: jogador.nome,
-            pontuacao: jogador.pontuacao,
-            respostas: perguntas.map((pergunta, indice) => {
-                const resposta = respostasDoJogador.get(pergunta.id);
-                const alternativas = {
-                    A: pergunta.alternativaA,
-                    B: pergunta.alternativaB,
-                    C: pergunta.alternativaC,
-                    D: pergunta.alternativaD
-                };
-
-                return {
-                    numero: indice + 1,
-                    enunciado: pergunta.enunciado,
-                    respondida: Boolean(resposta),
-                    correta: resposta ? resposta.correta : null,
-                    alternativaEscolhida: resposta ? resposta.alternativaEscolhida : null,
-                    textoEscolhido: resposta ? alternativas[resposta.alternativaEscolhida] : null,
-                    respostaCorreta: pergunta.respostaCorreta,
-                    textoCorreto: alternativas[pergunta.respostaCorreta]
-                };
-            })
+            numero: indice + 1,
+            enunciado: pergunta.enunciado,
+            respondida: Boolean(resposta),
+            correta: resposta ? resposta.correta : null,
+            alternativaEscolhida: resposta ? resposta.alternativaEscolhida : null,
+            textoEscolhido: resposta ? alternativas[resposta.alternativaEscolhida] : null,
+            respostaCorreta: pergunta.respostaCorreta,
+            textoCorreto: alternativas[pergunta.respostaCorreta]
         };
     });
 }
@@ -305,7 +328,7 @@ router.get('/:codigo/pergunta', async (req, res) => {
         });
 
         if (partida.status === 'finalizada') {
-            const ranking = await buscarRankingDetalhado(partida, perguntas);
+            const ranking = await buscarRankingPublico(partida);
 
             return res.json({
                 status: partida.status,
@@ -325,16 +348,11 @@ router.get('/:codigo/pergunta', async (req, res) => {
                 });
             }
 
-            const jogador = await Jogador.findOne({
-                where: {
-                    id: jogadorId,
-                    partidaId: partida.id
-                }
-            });
+            const jogador = await buscarJogadorAutenticado(req, partida, jogadorId);
 
             if (!jogador) {
-                return res.status(404).json({
-                    erro: 'Participante não encontrado nesta partida.'
+                return res.status(403).json({
+                    erro: 'Não foi possível autenticar este participante. Entre novamente na partida.'
                 });
             }
 
@@ -362,7 +380,7 @@ router.get('/:codigo/pergunta', async (req, res) => {
                 if (todosConcluiram) {
                     await partida.update({ status: 'finalizada' });
                     inicioPerguntas.delete(partida.id);
-                    const ranking = await buscarRankingDetalhado(partida, perguntas);
+                    const ranking = await buscarRankingPublico(partida);
 
                     return res.json({
                         status: 'finalizada',
@@ -431,7 +449,7 @@ router.get('/:codigo/pergunta', async (req, res) => {
                 status: 'finalizada'
             });
 
-            const ranking = await buscarRankingDetalhado(partida, perguntas);
+            const ranking = await buscarRankingPublico(partida);
 
             return res.json({
                 status: 'finalizada',
@@ -458,6 +476,63 @@ router.get('/:codigo/pergunta', async (req, res) => {
 
         return res.status(500).json({
             erro: 'Erro ao buscar pergunta.'
+        });
+    }
+});
+
+router.get('/:codigo/meu-resultado', async (req, res) => {
+    try {
+        const partida = await Partida.findOne({
+            where: { codigo: req.params.codigo }
+        });
+
+        if (!partida) {
+            return res.status(404).json({ erro: 'Partida não encontrada.' });
+        }
+
+        if (partida.status !== 'finalizada') {
+            return res.status(409).json({
+                erro: 'Suas respostas ficam disponíveis quando todos terminarem o quiz.'
+            });
+        }
+
+        const token = req.get('x-chave-jogador');
+        if (!tokenValido(token)) {
+            return res.status(401).json({
+                erro: 'Acesso individual não autorizado. Entre novamente na partida.'
+            });
+        }
+
+        // O token secreto identifica apenas o dono dessas respostas; o ranking público não contém detalhes.
+        const jogadores = await Jogador.findAll({
+            where: { partidaId: partida.id },
+            attributes: ['id', 'nome', 'pontuacao', 'chaveAcesso']
+        });
+        const jogador = jogadores.find(item => tokensIguais(token, item.chaveAcesso));
+
+        if (!jogador) {
+            return res.status(403).json({
+                erro: 'Você não tem autorização para ver as respostas deste participante.'
+            });
+        }
+
+        const perguntas = await Pergunta.findAll({
+            order: [['id', 'ASC']]
+        });
+        const respostas = await buscarRespostasIndividuais(partida, jogador, perguntas);
+
+        return res.json({
+            jogador: {
+                id: jogador.id,
+                nome: jogador.nome,
+                pontuacao: jogador.pontuacao
+            },
+            respostas
+        });
+    } catch (error) {
+        console.error('Erro ao buscar respostas individuais:', error);
+        return res.status(500).json({
+            erro: 'Não foi possível carregar suas respostas.'
         });
     }
 });
@@ -494,16 +569,11 @@ router.post('/:codigo/responder', async (req, res) => {
             });
         }
 
-        const jogador = await Jogador.findOne({
-            where: {
-                id: Number(jogadorId),
-                partidaId: partida.id
-            }
-        });
+        const jogador = await buscarJogadorAutenticado(req, partida, jogadorId);
 
         if (!jogador) {
-            return res.status(404).json({
-                erro: 'Jogador não encontrado nesta partida.'
+            return res.status(403).json({
+                erro: 'Não foi possível autenticar este participante. Entre novamente na partida.'
             });
         }
 
@@ -558,7 +628,7 @@ router.post('/:codigo/responder', async (req, res) => {
         const inicio = inicioPerguntasPorJogador.get(chaveInicio) ?? Date.now();
         const tempoResposta = Math.max(0, (Date.now() - inicio) / 1000);
         const bonusRapidez = correta
-            ? (tempoResposta <= 5 ? 3 : tempoResposta <= 10 ? 2 : tempoResposta <= 20 ? 1 : 0)
+            ? (tempoResposta <= 15 ? 3 : tempoResposta <= 20 ? 2 : tempoResposta <= 30 ? 1 : 0)
             : 0;
         const pontosGanhos = correta ? 1 + bonusRapidez : 0;
 

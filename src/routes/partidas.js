@@ -75,40 +75,20 @@ async function buscarRankingPublico(partida) {
     });
 }
 
-function tokenValido(token) {
-    return typeof token === 'string' && /^[a-f0-9]{64}$/i.test(token);
-}
+async function buscarJogadorDaPartida(partida, jogadorId) {
+    const id = Number(jogadorId);
 
-function tokensIguais(tokenRecebido, tokenArmazenado) {
-    if (!tokenValido(tokenRecebido) || !tokenValido(tokenArmazenado)) return false;
-
-    const recebido = Buffer.from(tokenRecebido, 'hex');
-    const armazenado = Buffer.from(tokenArmazenado, 'hex');
-
-    return recebido.length === armazenado.length &&
-        crypto.timingSafeEqual(recebido, armazenado);
-}
-
-async function buscarJogadorAutenticado(req, partida, jogadorId) {
-    const token = req.get('x-chave-jogador');
-
-    if (!tokenValido(token) || !Number.isInteger(Number(jogadorId))) {
+    if (!Number.isInteger(id) || id <= 0) {
         return null;
     }
 
-    const jogador = await Jogador.findOne({
+    return Jogador.findOne({
         where: {
-            id: Number(jogadorId),
+            id,
             partidaId: partida.id
         },
-        attributes: ['id', 'nome', 'pontuacao', 'chaveAcesso']
+        attributes: ['id', 'nome', 'pontuacao']
     });
-
-    if (!jogador || !tokensIguais(token, jogador.chaveAcesso)) {
-        return null;
-    }
-
-    return jogador;
 }
 
 async function buscarRespostasIndividuais(partida, jogador, perguntas) {
@@ -348,11 +328,11 @@ router.get('/:codigo/pergunta', async (req, res) => {
                 });
             }
 
-            const jogador = await buscarJogadorAutenticado(req, partida, jogadorId);
+            const jogador = await buscarJogadorDaPartida(partida, jogadorId);
 
             if (!jogador) {
                 return res.status(403).json({
-                    erro: 'Não foi possível autenticar este participante. Entre novamente na partida.'
+                    erro: 'Não foi possível localizar este participante nesta sala. Confira o código da partida.'
                 });
             }
 
@@ -480,79 +460,6 @@ router.get('/:codigo/pergunta', async (req, res) => {
     }
 });
 
-router.post('/:codigo/recuperar-sessao', async (req, res) => {
-    try {
-        const partida = await Partida.findOne({
-            where: { codigo: req.params.codigo }
-        });
-
-        if (!partida) {
-            return res.status(404).json({ erro: 'Partida não encontrada.' });
-        }
-
-        const jogadorId = Number(req.body.jogadorId);
-        const nome = typeof req.body.nome === 'string' ? req.body.nome.trim() : '';
-
-        if (!Number.isInteger(jogadorId) || !nome) {
-            return res.status(400).json({
-                erro: 'Não foi possível recuperar a sessão. Feche esta página e entre novamente pelo código e pelo nome usados anteriormente.'
-            });
-        }
-
-        const jogador = await Jogador.findOne({
-            where: {
-                id: jogadorId,
-                partidaId: partida.id,
-                nome
-            },
-            attributes: ['id', 'nome', 'pontuacao', 'chaveAcesso']
-        });
-
-        if (!jogador) {
-            return res.status(404).json({
-                erro: 'Não encontrei esta sessão com esse nome. Confira se o navegador guardou o nome correto.'
-            });
-        }
-
-        // Recuperação de transição: somente jogadores antigos sem chave podem vincular uma.
-        // A atualização condicional garante que apenas a primeira tentativa possa vinculá-la.
-        if (jogador.chaveAcesso) {
-            return res.status(409).json({
-                erro: 'Esta sessão já tem proteção ativa, mas a chave não está neste navegador. Por segurança, entre com uma sessão que tenha a chave original.'
-            });
-        }
-
-        const novaChave = crypto.randomBytes(32).toString('hex');
-        const [atualizados] = await Jogador.update(
-            { chaveAcesso: novaChave },
-            {
-                where: {
-                    id: jogador.id,
-                    partidaId: partida.id,
-                    chaveAcesso: null
-                }
-            }
-        );
-
-        if (atualizados !== 1) {
-            return res.status(409).json({
-                erro: 'Esta sessão acabou de ser vinculada em outro acesso. Atualize a página e tente novamente.'
-            });
-        }
-
-        return res.json({
-            mensagem: 'Sessão recuperada. Você pode continuar o quiz.',
-            jogadorId: jogador.id,
-            chaveAcesso: novaChave
-        });
-    } catch (error) {
-        console.error('Erro ao recuperar sessão do participante:', error);
-        return res.status(500).json({
-            erro: 'Não foi possível recuperar a sessão agora. Tente atualizar a página.'
-        });
-    }
-});
-
 router.get('/:codigo/meu-resultado', async (req, res) => {
     try {
         const partida = await Partida.findOne({
@@ -569,23 +476,25 @@ router.get('/:codigo/meu-resultado', async (req, res) => {
             });
         }
 
-        const token = req.get('x-chave-jogador');
-        if (!tokenValido(token)) {
-            return res.status(401).json({
-                erro: 'Acesso individual não autorizado. Entre novamente na partida.'
+        const jogadorId = Number(req.query.jogadorId);
+
+        if (!Number.isInteger(jogadorId) || jogadorId <= 0) {
+            return res.status(400).json({
+                erro: 'Identificação do participante inválida.'
             });
         }
 
-        // O token secreto identifica apenas o dono dessas respostas; o ranking público não contém detalhes.
-        const jogadores = await Jogador.findAll({
-            where: { partidaId: partida.id },
-            attributes: ['id', 'nome', 'pontuacao', 'chaveAcesso']
+        const jogador = await Jogador.findOne({
+            where: {
+                id: jogadorId,
+                partidaId: partida.id
+            },
+            attributes: ['id', 'nome', 'pontuacao']
         });
-        const jogador = jogadores.find(item => tokensIguais(token, item.chaveAcesso));
 
         if (!jogador) {
-            return res.status(403).json({
-                erro: 'Você não tem autorização para ver as respostas deste participante.'
+            return res.status(404).json({
+                erro: 'Não encontrei este participante nesta partida.'
             });
         }
 
@@ -642,11 +551,11 @@ router.post('/:codigo/responder', async (req, res) => {
             });
         }
 
-        const jogador = await buscarJogadorAutenticado(req, partida, jogadorId);
+        const jogador = await buscarJogadorDaPartida(partida, jogadorId);
 
         if (!jogador) {
             return res.status(403).json({
-                erro: 'Não foi possível autenticar este participante. Entre novamente na partida.'
+                erro: 'Não foi possível localizar este participante nesta sala. Confira o código da partida.'
             });
         }
 

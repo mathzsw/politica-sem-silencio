@@ -553,6 +553,7 @@ router.post('/:codigo/responder', async (req, res) => {
             });
         }
 
+        const correta = alternativa === pergunta.respostaCorreta;
         const chaveInicio = `${partida.id}:${jogador.id}:${pergunta.id}`;
         const inicio = inicioPerguntasPorJogador.get(chaveInicio) ?? Date.now();
         const tempoResposta = Math.max(0, (Date.now() - inicio) / 1000);

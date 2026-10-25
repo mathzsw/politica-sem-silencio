@@ -69,7 +69,7 @@
             </div>
             <section class="quiz-painel-pontuacao" id="painel-pontuacao">
                 <h2>Placar ao vivo</h2>
-                <p>Resposta correta vale 1 ponto, com bônus de rapidez: +3 até 15s, +2 até 20s e +1 até 30s.</p>
+                <p>Resposta correta vale 1 ponto, com bônus de rapidez: +3 até 20s, +2 até 30s e +1 até 40s.</p>
                 <div class="quiz-ranking" id="ranking-ao-vivo"></div>
             </section>
         </section>
@@ -88,10 +88,13 @@
     <script>
         const quiz = document.getElementById('quiz');
         const codigo = quiz.dataset.codigo;
-        const jogadorId = localStorage.getItem('jogador-' + codigo);
-        const chaveJogador = localStorage.getItem('chave-jogador-' + codigo);
         const chaveApresentador = sessionStorage.getItem('chave-apresentador-' + codigo);
         const ehApresentador = Boolean(chaveApresentador);
+
+        // O apresentador pode ter dados antigos de participante no navegador.
+        // Priorizar a chave do apresentador evita enviar um jogadorId desatualizado.
+        const jogadorId = ehApresentador ? null : localStorage.getItem('jogador-' + codigo);
+        const chaveJogador = ehApresentador ? null : localStorage.getItem('chave-jogador-' + codigo);
 
         const progresso = document.getElementById('progresso-pergunta');
         const enunciado = document.getElementById('enunciado-pergunta');

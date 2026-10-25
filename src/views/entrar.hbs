@@ -73,7 +73,6 @@
 
                 localStorage.setItem(`jogador-${codigo}`, resultado.jogador.id);
                 localStorage.setItem(`nome-jogador-${codigo}`, resultado.jogador.nome);
-                localStorage.setItem(`chave-jogador-${codigo}`, resultado.jogador.chaveAcesso);
 
                 window.location.href = `/partidas/${encodeURIComponent(codigo)}`;
             } catch (erro) {

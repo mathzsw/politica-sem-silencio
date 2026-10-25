@@ -1,5 +1,4 @@
 const express = require('express');
-const crypto = require('crypto');
 const { Partida, Jogador } = require('../models');
 
 const router = express.Router();
@@ -45,12 +44,9 @@ router.post('/:codigo', async (req, res) => {
             });
         }
 
-        const chaveAcesso = crypto.randomBytes(32).toString('hex');
-
         const jogador = await Jogador.create({
             nome: nomeNormalizado,
-            partidaId: partida.id,
-            chaveAcesso
+            partidaId: partida.id
         });
 
         return res.status(201).json({
@@ -58,8 +54,7 @@ router.post('/:codigo', async (req, res) => {
             jogador: {
                 id: jogador.id,
                 nome: jogador.nome,
-                pontuacao: jogador.pontuacao,
-                chaveAcesso
+                pontuacao: jogador.pontuacao
             }
         });
     } catch (error) {

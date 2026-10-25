@@ -10,6 +10,11 @@ const Jogador = sequelize.define('Jogador', {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0
+    },
+    // Token secreto usado para proteger as respostas individuais de cada participante.
+    chaveAcesso: {
+        type: DataTypes.STRING(64),
+        allowNull: true
     }
 });
 

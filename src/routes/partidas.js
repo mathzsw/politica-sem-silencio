@@ -63,6 +63,69 @@ async function verificarApresentador(req, partida) {
     return crypto.timingSafeEqual(hashRecebido, hashArmazenado);
 }
 
+async function buscarRankingDetalhado(partida, perguntas) {
+    const jogadores = await Jogador.findAll({
+        where: { partidaId: partida.id },
+        attributes: ['id', 'nome', 'pontuacao'],
+        order: [
+            ['pontuacao', 'DESC'],
+            ['createdAt', 'ASC']
+        ]
+    });
+
+    const respostas = await Resposta.findAll({
+        where: { partidaId: partida.id },
+        attributes: [
+            'jogadorId',
+            'perguntaId',
+            'alternativaEscolhida',
+            'correta'
+        ]
+    });
+
+    const respostasPorJogador = new Map();
+
+    for (const resposta of respostas) {
+        if (!respostasPorJogador.has(resposta.jogadorId)) {
+            respostasPorJogador.set(resposta.jogadorId, new Map());
+        }
+
+        respostasPorJogador
+            .get(resposta.jogadorId)
+            .set(resposta.perguntaId, resposta);
+    }
+
+    return jogadores.map(jogador => {
+        const respostasDoJogador = respostasPorJogador.get(jogador.id) || new Map();
+
+        return {
+            id: jogador.id,
+            nome: jogador.nome,
+            pontuacao: jogador.pontuacao,
+            respostas: perguntas.map((pergunta, indice) => {
+                const resposta = respostasDoJogador.get(pergunta.id);
+                const alternativas = {
+                    A: pergunta.alternativaA,
+                    B: pergunta.alternativaB,
+                    C: pergunta.alternativaC,
+                    D: pergunta.alternativaD
+                };
+
+                return {
+                    numero: indice + 1,
+                    enunciado: pergunta.enunciado,
+                    respondida: Boolean(resposta),
+                    correta: resposta ? resposta.correta : null,
+                    alternativaEscolhida: resposta ? resposta.alternativaEscolhida : null,
+                    textoEscolhido: resposta ? alternativas[resposta.alternativaEscolhida] : null,
+                    respostaCorreta: pergunta.respostaCorreta,
+                    textoCorreto: alternativas[pergunta.respostaCorreta]
+                };
+            })
+        };
+    });
+}
+
 router.post('/', async (req, res) => {
     let transacao;
 
@@ -219,16 +282,7 @@ router.get('/:codigo/pergunta', async (req, res) => {
         });
 
         if (partida.status === 'finalizada') {
-            const ranking = await Jogador.findAll({
-                where: {
-                    partidaId: partida.id
-                },
-                attributes: ['id', 'nome', 'pontuacao'],
-                order: [
-                    ['pontuacao', 'DESC'],
-                    ['createdAt', 'ASC']
-                ]
-            });
+            const ranking = await buscarRankingDetalhado(partida, perguntas);
 
             return res.json({
                 status: partida.status,
@@ -256,16 +310,7 @@ router.get('/:codigo/pergunta', async (req, res) => {
                 status: 'finalizada'
             });
 
-            const ranking = await Jogador.findAll({
-                where: {
-                    partidaId: partida.id
-                },
-                attributes: ['id', 'nome', 'pontuacao'],
-                order: [
-                    ['pontuacao', 'DESC'],
-                    ['createdAt', 'ASC']
-                ]
-            });
+            const ranking = await buscarRankingDetalhado(partida, perguntas);
 
             return res.json({
                 status: 'finalizada',

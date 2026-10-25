@@ -11,6 +11,7 @@ const {
 
 const router = express.Router();
 const inicioPerguntas = new Map();
+const inicioPerguntasPorJogador = new Map();
 
 function gerarCodigo() {
     const caracteres = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -124,6 +125,28 @@ async function buscarRankingDetalhado(partida, perguntas) {
             })
         };
     });
+}
+
+async function todosParticipantesConcluiram(partidaId, totalPerguntas) {
+    const jogadores = await Jogador.findAll({
+        where: { partidaId },
+        attributes: ['id']
+    });
+
+    if (jogadores.length === 0) return false;
+
+    for (const jogador of jogadores) {
+        const totalRespostas = await Resposta.count({
+            where: {
+                partidaId,
+                jogadorId: jogador.id
+            }
+        });
+
+        if (totalRespostas < totalPerguntas) return false;
+    }
+
+    return true;
 }
 
 router.post('/', async (req, res) => {
@@ -291,6 +314,94 @@ router.get('/:codigo/pergunta', async (req, res) => {
             });
         }
 
+        // Cada participante recebe a primeira pergunta que ainda não respondeu.
+        // O apresentador continua vendo a pergunta global que controla na apresentação.
+        if (req.query.jogadorId !== undefined) {
+            const jogadorId = Number(req.query.jogadorId);
+
+            if (!Number.isInteger(jogadorId)) {
+                return res.status(400).json({
+                    erro: 'Identificação de participante inválida.'
+                });
+            }
+
+            const jogador = await Jogador.findOne({
+                where: {
+                    id: jogadorId,
+                    partidaId: partida.id
+                }
+            });
+
+            if (!jogador) {
+                return res.status(404).json({
+                    erro: 'Participante não encontrado nesta partida.'
+                });
+            }
+
+            if (partida.status !== 'em_andamento') {
+                return res.json({
+                    status: partida.status,
+                    pergunta: null,
+                    totalPerguntas: perguntas.length
+                });
+            }
+
+            const respostas = await Resposta.findAll({
+                where: {
+                    partidaId: partida.id,
+                    jogadorId: jogador.id
+                },
+                attributes: ['perguntaId']
+            });
+            const respondidas = new Set(respostas.map(resposta => Number(resposta.perguntaId)));
+            const indice = perguntas.findIndex(pergunta => !respondidas.has(Number(pergunta.id)));
+
+            if (indice === -1) {
+                const todosConcluiram = await todosParticipantesConcluiram(partida.id, perguntas.length);
+
+                if (todosConcluiram) {
+                    await partida.update({ status: 'finalizada' });
+                    inicioPerguntas.delete(partida.id);
+                    const ranking = await buscarRankingDetalhado(partida, perguntas);
+
+                    return res.json({
+                        status: 'finalizada',
+                        totalPerguntas: perguntas.length,
+                        ranking
+                    });
+                }
+
+                return res.json({
+                    status: 'jogador_finalizado',
+                    jogadorId: jogador.id,
+                    totalPerguntas: perguntas.length,
+                    mensagem: 'Você concluiu as perguntas. Aguardando os demais participantes.'
+                });
+            }
+
+            const pergunta = perguntas[indice];
+            const chaveInicio = `${partida.id}:${jogador.id}:${pergunta.id}`;
+
+            if (!inicioPerguntasPorJogador.has(chaveInicio)) {
+                inicioPerguntasPorJogador.set(chaveInicio, Date.now());
+            }
+
+            return res.json({
+                status: partida.status,
+                numeroPergunta: indice + 1,
+                totalPerguntas: perguntas.length,
+                progressoIndividual: true,
+                pergunta: {
+                    id: pergunta.id,
+                    enunciado: pergunta.enunciado,
+                    alternativaA: pergunta.alternativaA,
+                    alternativaB: pergunta.alternativaB,
+                    alternativaC: pergunta.alternativaC,
+                    alternativaD: pergunta.alternativaD
+                }
+            });
+        }
+
         if (partida.status !== 'em_andamento') {
             return res.json({
                 status: partida.status,
@@ -301,11 +412,21 @@ router.get('/:codigo/pergunta', async (req, res) => {
 
         const indice = partida.perguntaAtual ?? 0;
         const pergunta = perguntas[indice];
+
         if (pergunta && !inicioPerguntas.has(partida.id)) {
             inicioPerguntas.set(partida.id, Date.now());
         }
 
         if (!pergunta) {
+            const todosConcluiram = await todosParticipantesConcluiram(partida.id, perguntas.length);
+
+            if (!todosConcluiram) {
+                return res.json({
+                    status: 'aguardando_participantes',
+                    totalPerguntas: perguntas.length
+                });
+            }
+
             await partida.update({
                 status: 'finalizada'
             });
@@ -390,11 +511,11 @@ router.post('/:codigo/responder', async (req, res) => {
             order: [['id', 'ASC']]
         });
 
-        const pergunta = perguntas[partida.perguntaAtual ?? 0];
+        const pergunta = perguntas.find(item => item.id === Number(perguntaId));
 
-        if (!pergunta || pergunta.id !== Number(perguntaId)) {
-            return res.status(409).json({
-                erro: 'A pergunta mudou. Atualize a tela antes de responder.'
+        if (!pergunta) {
+            return res.status(404).json({
+                erro: 'Pergunta não encontrada.'
             });
         }
 
@@ -412,8 +533,28 @@ router.post('/:codigo/responder', async (req, res) => {
             });
         }
 
-        const correta = alternativa === pergunta.respostaCorreta;
-        const inicio = inicioPerguntas.get(partida.id) ?? Date.now();
+        const respostasDoJogador = await Resposta.findAll({
+            where: {
+                partidaId: partida.id,
+                jogadorId: jogador.id
+            },
+            attributes: ['perguntaId']
+        });
+        const respondidas = new Set(
+            respostasDoJogador.map(resposta => Number(resposta.perguntaId))
+        );
+        const proximaPergunta = perguntas.find(
+            item => !respondidas.has(Number(item.id))
+        );
+
+        if (!proximaPergunta || proximaPergunta.id !== pergunta.id) {
+            return res.status(409).json({
+                erro: 'Responda às perguntas na ordem em que aparecem.'
+            });
+        }
+
+        const chaveInicio = `${partida.id}:${jogador.id}:${pergunta.id}`;
+        const inicio = inicioPerguntasPorJogador.get(chaveInicio) ?? Date.now();
         const tempoResposta = Math.max(0, (Date.now() - inicio) / 1000);
         const bonusRapidez = correta
             ? (tempoResposta <= 5 ? 3 : tempoResposta <= 10 ? 2 : tempoResposta <= 20 ? 1 : 0)
@@ -427,6 +568,8 @@ router.post('/:codigo/responder', async (req, res) => {
             alternativaEscolhida: alternativa,
             correta
         });
+
+        inicioPerguntasPorJogador.delete(chaveInicio);
 
         if (pontosGanhos > 0) {
             await jogador.increment('pontuacao', { by: pontosGanhos });
@@ -483,6 +626,20 @@ router.post('/:codigo/proxima', async (req, res) => {
         const proximoIndice = (partida.perguntaAtual ?? 0) + 1;
 
         if (proximoIndice >= totalPerguntas) {
+            const totalJogadores = await Jogador.count({
+                where: { partidaId: partida.id }
+            });
+            const todosConcluiram = totalJogadores === 0
+                ? true
+                : await todosParticipantesConcluiram(partida.id, totalPerguntas);
+
+            if (!todosConcluiram) {
+                return res.json({
+                    status: 'aguardando_participantes',
+                    mensagem: 'A apresentação chegou ao fim. Os participantes podem continuar respondendo no próprio ritmo.'
+                });
+            }
+
             await partida.update({
                 status: 'finalizada'
             });

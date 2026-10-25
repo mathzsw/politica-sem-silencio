@@ -31,6 +31,17 @@
         .quiz-ranking-posicao { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: #302443; color: #c4a9ff; font-weight: 800; }
         .quiz-ranking-pontos { color: #c4a9ff; font-weight: 700; white-space: nowrap; }
         .quiz-ranking-vazio { color: #a4a4b0; padding: 16px 0; }
+        .quiz-ranking-item--voce { border: 2px solid #a78bfa; background: #2a2140; box-shadow: 0 0 0 3px rgba(167, 139, 250, .12); }
+        .quiz-voce-tag { display: inline-block; margin-left: 8px; padding: 4px 8px; border-radius: 999px; background: #7c3aed; color: #fff; font-size: 11px; font-weight: 800; letter-spacing: .4px; vertical-align: middle; }
+        .quiz-respostas-detalhe { flex: 0 0 100%; width: 100%; margin-top: 8px; padding-top: 14px; border-top: 1px solid #393a49; }
+        .quiz-respostas-detalhe summary { color: #d5c5ff; cursor: pointer; font-weight: 700; line-height: 1.5; }
+        .quiz-respostas-lista { display: grid; gap: 10px; list-style: none; padding: 14px 0 0; margin: 0; }
+        .quiz-resposta-item { padding: 12px 14px; border: 1px solid #393a49; border-radius: 10px; background: #191a24; }
+        .quiz-resposta-pergunta { margin: 0 0 8px; color: #f5f5f7; font-weight: 700; line-height: 1.5; }
+        .quiz-resposta-status { margin: 0; color: #c8c8d2; font-size: 13px; line-height: 1.6; }
+        .quiz-resposta-item--correta { border-left: 4px solid #51c78b; }
+        .quiz-resposta-item--incorreta { border-left: 4px solid #ff8585; }
+        .quiz-resposta-item--sem-resposta { border-left: 4px solid #a4a4b0; }
         .quiz-painel-pontuacao { margin-top: 22px; }
         .quiz-painel-pontuacao h2 { font-size: 20px; margin-bottom: 8px; }
         .quiz-painel-pontuacao p { color: #a4a4b0; font-size: 13px; }
@@ -66,7 +77,7 @@
         <section class="quiz-cartao" id="painel-final" hidden>
             <span class="quiz-etiqueta">PARTIDA FINALIZADA</span>
             <h2 class="quiz-titulo">Classificação final</h2>
-            <p class="quiz-descricao">Cada resposta correta vale 1 ponto. Veja o resultado final:</p>
+            <p class="quiz-descricao">Confira a pontuação e o desempenho de cada participante:</p>
             <div class="quiz-ranking" id="ranking-final"></div>
             <div class="quiz-acoes">
                 <a href="/" class="quiz-botao">Voltar ao início</a>
@@ -314,6 +325,9 @@
                 const item = document.createElement('article');
                 item.className = 'quiz-ranking-item';
 
+                const ehVoce = jogadorId && String(jogador.id) === String(jogadorId);
+                if (ehVoce) item.classList.add('quiz-ranking-item--voce');
+
                 const nome = document.createElement('span');
                 nome.className = 'quiz-ranking-nome';
 
@@ -325,11 +339,68 @@
                 textoNome.textContent = (indice === 0 ? '🏆 ' : '') + jogador.nome;
                 nome.append(posicao, textoNome);
 
+                if (ehVoce) {
+                    const etiquetaVoce = document.createElement('span');
+                    etiquetaVoce.className = 'quiz-voce-tag';
+                    etiquetaVoce.textContent = 'VOCÊ';
+                    nome.appendChild(etiquetaVoce);
+                }
+
                 const pontos = document.createElement('span');
                 pontos.className = 'quiz-ranking-pontos';
                 pontos.textContent = jogador.pontuacao + (jogador.pontuacao === 1 ? ' ponto' : ' pontos');
 
                 item.append(nome, pontos);
+
+                const respostas = Array.isArray(jogador.respostas) ? jogador.respostas : [];
+                const acertos = respostas.filter(resposta => resposta.respondida && resposta.correta).length;
+                const erros = respostas.filter(resposta => resposta.respondida && !resposta.correta).length;
+                const semResposta = respostas.filter(resposta => !resposta.respondida).length;
+
+                const detalhes = document.createElement('details');
+                detalhes.className = 'quiz-respostas-detalhe';
+
+                const resumo = document.createElement('summary');
+                resumo.textContent = 'Ver respostas — ' +
+                    acertos + (acertos === 1 ? ' acerto' : ' acertos') + ' · ' +
+                    erros + (erros === 1 ? ' erro' : ' erros') +
+                    (semResposta ? ' · ' + semResposta + (semResposta === 1 ? ' sem resposta' : ' sem respostas') : '');
+
+                const lista = document.createElement('ul');
+                lista.className = 'quiz-respostas-lista';
+
+                respostas.forEach(resposta => {
+                    const linha = document.createElement('li');
+                    linha.className = 'quiz-resposta-item';
+
+                    const pergunta = document.createElement('p');
+                    pergunta.className = 'quiz-resposta-pergunta';
+                    pergunta.textContent = 'Pergunta ' + resposta.numero + ': ' + resposta.enunciado;
+
+                    const resultado = document.createElement('p');
+                    resultado.className = 'quiz-resposta-status';
+
+                    if (!resposta.respondida) {
+                        linha.classList.add('quiz-resposta-item--sem-resposta');
+                        resultado.textContent = '— Não respondeu. Resposta correta: ' +
+                            resposta.respostaCorreta + ' — ' + resposta.textoCorreto;
+                    } else if (resposta.correta) {
+                        linha.classList.add('quiz-resposta-item--correta');
+                        resultado.textContent = '✅ Acertou — sua resposta: ' +
+                            resposta.alternativaEscolhida + ' — ' + resposta.textoEscolhido;
+                    } else {
+                        linha.classList.add('quiz-resposta-item--incorreta');
+                        resultado.textContent = '❌ Errou — você marcou: ' +
+                            resposta.alternativaEscolhida + ' — ' + resposta.textoEscolhido +
+                            '. Resposta correta: ' + resposta.respostaCorreta + ' — ' + resposta.textoCorreto;
+                    }
+
+                    linha.append(pergunta, resultado);
+                    lista.appendChild(linha);
+                });
+
+                detalhes.append(resumo, lista);
+                item.appendChild(detalhes);
                 rankingFinal.appendChild(item);
             });
         }

@@ -628,7 +628,7 @@ router.post('/:codigo/responder', async (req, res) => {
         const inicio = inicioPerguntasPorJogador.get(chaveInicio) ?? Date.now();
         const tempoResposta = Math.max(0, (Date.now() - inicio) / 1000);
         const bonusRapidez = correta
-            ? (tempoResposta <= 15 ? 3 : tempoResposta <= 20 ? 2 : tempoResposta <= 30 ? 1 : 0)
+            ? (tempoResposta <= 20 ? 3 : tempoResposta <= 30 ? 2 : tempoResposta <= 40 ? 1 : 0)
             : 0;
         const pontosGanhos = correta ? 1 + bonusRapidez : 0;
 

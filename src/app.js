@@ -7,7 +7,7 @@ const jogadoresRoutes = require('./routes/jogadores');
 const partidasRoutes = require('./routes/partidas');
 const adminRoutes = require('./routes/admin');
 
-require('./models');
+const { Pergunta } = require('./models');
 
 const app = express();
 
@@ -38,6 +38,26 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 
+async function carregarPerguntasIniciais() {
+    const perguntasIniciais = require('./perguntas-iniciais');
+    let cadastradas = 0;
+
+    for (const pergunta of perguntasIniciais) {
+        const existente = await Pergunta.findOne({
+            where: { enunciado: pergunta.enunciado }
+        });
+
+        if (!existente) {
+            await Pergunta.create(pergunta);
+            cadastradas++;
+        }
+    }
+
+    if (cadastradas > 0) {
+        console.log(`${cadastradas} perguntas iniciais adicionadas ao quiz.`);
+    }
+}
+
 async function startServer() {
     try {
         await sequelize.authenticate();
@@ -45,6 +65,8 @@ async function startServer() {
         console.log('Banco de dados conectado.');
 
         await sequelize.sync();
+
+        await carregarPerguntasIniciais();
 
         app.listen(PORT, () => {
             console.log(`Política sem Silêncio rodando em http://localhost:${PORT}`);

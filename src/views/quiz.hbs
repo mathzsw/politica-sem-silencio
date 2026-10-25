@@ -213,6 +213,7 @@
             if (ehApresentador || respostaEnviada || !perguntaAtualId || !jogadorId) return;
 
             respostaEnviada = true;
+            pausaDepoisResposta = true;
             alternativas.querySelectorAll('button').forEach(botao => { botao.disabled = true; });
             feedback.textContent = 'Verificando resposta...';
 
@@ -242,6 +243,7 @@
                 }, 1300);
             } catch (erro) {
                 respostaEnviada = false;
+                pausaDepoisResposta = false;
                 feedback.textContent = erro.message;
                 feedback.className = 'quiz-feedback quiz-erro';
                 alternativas.querySelectorAll('button').forEach(botao => { botao.disabled = false; });

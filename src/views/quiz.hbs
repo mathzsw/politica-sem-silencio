@@ -91,10 +91,8 @@
         const chaveApresentador = sessionStorage.getItem('chave-apresentador-' + codigo);
         const ehApresentador = Boolean(chaveApresentador);
 
-        // O apresentador pode ter dados antigos de participante no navegador.
-        // Priorizar a chave do apresentador evita enviar um jogadorId desatualizado.
+        // A identificação do participante fica salva no navegador; não há chave extra de participante.
         const jogadorId = ehApresentador ? null : localStorage.getItem('jogador-' + codigo);
-        let chaveJogador = ehApresentador ? null : localStorage.getItem('chave-jogador-' + codigo);
 
         const progresso = document.getElementById('progresso-pergunta');
         const enunciado = document.getElementById('enunciado-pergunta');
@@ -140,10 +138,7 @@
             try {
                 const urlPergunta = '/partidas/' + encodeURIComponent(codigo) + '/pergunta' +
                     (jogadorId ? '?jogadorId=' + encodeURIComponent(jogadorId) : '');
-                const opcoesFetch = jogadorId && chaveJogador
-                    ? { headers: { 'X-Chave-Jogador': chaveJogador } }
-                    : {};
-                const resposta = await fetch(urlPergunta, opcoesFetch);
+                const resposta = await fetch(urlPergunta);
                 const dados = await resposta.json();
 
                 if (!resposta.ok) throw new Error(dados.erro || 'Não foi possível carregar a pergunta.');
@@ -228,8 +223,7 @@
                 const resposta = await fetch('/partidas/' + encodeURIComponent(codigo) + '/responder', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-Chave-Jogador': chaveJogador || ''
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         jogadorId: Number(jogadorId),
@@ -370,7 +364,7 @@
         }
 
         async function carregarRespostasPessoais(itemJogador) {
-            if (!chaveJogador || !itemJogador) return;
+            if (!jogadorId || !itemJogador) return;
 
             const detalhes = document.createElement('details');
             detalhes.className = 'quiz-respostas-detalhe';
@@ -382,8 +376,8 @@
 
             try {
                 const resposta = await fetch(
-                    '/partidas/' + encodeURIComponent(codigo) + '/meu-resultado',
-                    { headers: { 'X-Chave-Jogador': chaveJogador } }
+                    '/partidas/' + encodeURIComponent(codigo) + '/meu-resultado?jogadorId=' +
+                    encodeURIComponent(jogadorId)
                 );
                 const dados = await resposta.json();
 
@@ -506,56 +500,14 @@
                 rankingFinal.appendChild(item);
             });
 
-            // O endpoint individual é autenticado por um segredo que nunca entra no ranking público.
-            if (itemPessoal && jogadorId && chaveJogador) {
+            // O resultado é localizado pelo ID salvo para esta participação no navegador.
+            if (itemPessoal && jogadorId) {
                 carregarRespostasPessoais(itemPessoal);
             }
         }
 
-        async function prepararSessaoEIniciarQuiz() {
+        async function iniciarQuizNaSessao() {
             if (!jogadorId && !ehApresentador) return;
-
-            // Vincula uma chave a registros antigos sem chave para evitar bloquear a partida atual.
-            if (jogadorId && !chaveJogador && !ehApresentador) {
-                const nomeSalvo = localStorage.getItem('nome-jogador-' + codigo);
-
-                if (!nomeSalvo) {
-                    descricao.textContent = 'Não encontramos o nome salvo nesta sessão. Entre novamente usando seu nome original.';
-                    feedback.textContent = 'Não foi possível recuperar a sessão automaticamente.';
-                    feedback.className = 'quiz-feedback quiz-erro';
-                    return;
-                }
-
-                descricao.textContent = 'Recuperando sua sessão anterior...';
-
-                try {
-                    const resposta = await fetch(
-                        '/partidas/' + encodeURIComponent(codigo) + '/recuperar-sessao',
-                        {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                jogadorId: Number(jogadorId),
-                                nome: nomeSalvo
-                            })
-                        }
-                    );
-                    const dados = await resposta.json();
-
-                    if (!resposta.ok) {
-                        throw new Error(dados.erro || 'Não foi possível recuperar sua sessão.');
-                    }
-
-                    chaveJogador = dados.chaveAcesso;
-                    localStorage.setItem('chave-jogador-' + codigo, chaveJogador);
-                    descricao.textContent = 'Sessão recuperada. Você pode continuar respondendo no próprio ritmo.';
-                } catch (erro) {
-                    descricao.textContent = 'Não foi possível recuperar automaticamente esta sessão.';
-                    feedback.textContent = erro.message;
-                    feedback.className = 'quiz-feedback quiz-erro';
-                    return;
-                }
-            }
 
             await carregarPergunta();
             await carregarPlacar();
@@ -564,7 +516,7 @@
         }
 
         botaoProxima.addEventListener('click', avancarPergunta);
-        prepararSessaoEIniciarQuiz();
+        iniciarQuizNaSessao();
     </script>
 </body>
 </html>

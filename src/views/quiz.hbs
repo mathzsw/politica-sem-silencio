@@ -75,9 +75,9 @@
         </section>
 
         <section class="quiz-cartao" id="painel-final" hidden>
-            <span class="quiz-etiqueta">PARTIDA FINALIZADA</span>
-            <h2 class="quiz-titulo">Classificação final</h2>
-            <p class="quiz-descricao">Confira a pontuação e o desempenho de cada participante:</p>
+            <span class="quiz-etiqueta" id="etiqueta-final">PARTIDA FINALIZADA</span>
+            <h2 class="quiz-titulo" id="titulo-final">Classificação final</h2>
+            <p class="quiz-descricao" id="descricao-final">Confira a pontuação e o desempenho de cada participante:</p>
             <div class="quiz-ranking" id="ranking-final"></div>
             <div class="quiz-acoes">
                 <a href="/" class="quiz-botao">Voltar ao início</a>
@@ -103,12 +103,18 @@
         const rankingAoVivo = document.getElementById('ranking-ao-vivo');
         const painelPontuacao = document.getElementById('painel-pontuacao');
         const descricao = document.getElementById('quiz-descricao');
+        const etiquetaFinal = document.getElementById('etiqueta-final');
+        const tituloFinal = document.getElementById('titulo-final');
+        const descricaoFinal = document.getElementById('descricao-final');
 
         let perguntaAtualId = null;
         let respostaEnviada = false;
         let carregando = false;
         let partidaFinalizada = false;
         let carregandoPlacar = false;
+        let pausaDepoisResposta = false;
+        let aguardandoResultado = false;
+        let aguardandoParticipantes = false;
 
         if (!jogadorId && !ehApresentador) {
             descricao.textContent = 'Sua identificação não foi encontrada. Entre na partida pelo código antes de responder.';
@@ -124,11 +130,13 @@
         }
 
         async function carregarPergunta() {
-            if (carregando || partidaFinalizada || (!jogadorId && !ehApresentador)) return;
+            if (carregando || partidaFinalizada || pausaDepoisResposta || (!jogadorId && !ehApresentador)) return;
             carregando = true;
 
             try {
-                const resposta = await fetch('/partidas/' + encodeURIComponent(codigo) + '/pergunta');
+                const urlPergunta = '/partidas/' + encodeURIComponent(codigo) + '/pergunta' +
+                    (jogadorId ? '?jogadorId=' + encodeURIComponent(jogadorId) : '');
+                const resposta = await fetch(urlPergunta);
                 const dados = await resposta.json();
 
                 if (!resposta.ok) throw new Error(dados.erro || 'Não foi possível carregar a pergunta.');
@@ -140,6 +148,11 @@
 
                 if (dados.status === 'finalizada') {
                     mostrarRanking(dados.ranking || []);
+                    return;
+                }
+
+                if (dados.status === 'jogador_finalizado') {
+                    mostrarAguardandoResultado();
                     return;
                 }
 
@@ -218,8 +231,15 @@
                 if (!resposta.ok) throw new Error(dados.erro || 'Não foi possível registrar sua resposta.');
 
                 feedback.textContent = dados.mensagem + ' Sua pontuação total: ' + dados.pontuacao + (dados.pontuacao === 1 ? ' ponto.' : ' pontos.');
-            carregarPlacar();
+                carregarPlacar();
                 feedback.style.color = dados.correta ? '#9b72f2' : '#ff8585';
+
+                // Após mostrar o feedback brevemente, busca a próxima pergunta individual.
+                pausaDepoisResposta = true;
+                setTimeout(() => {
+                    pausaDepoisResposta = false;
+                    carregarPergunta();
+                }, 1300);
             } catch (erro) {
                 respostaEnviada = false;
                 feedback.textContent = erro.message;
@@ -294,6 +314,11 @@
 
                 if (dados.status === 'finalizada') {
                     await carregarPergunta();
+                } else if (dados.status === 'aguardando_participantes') {
+                    aguardandoParticipantes = true;
+                    descricao.textContent = 'A apresentação chegou ao fim. Os participantes podem terminar as perguntas no próprio ritmo.';
+                    feedback.textContent = dados.mensagem;
+                    feedback.style.color = '#c4a9ff';
                 } else {
                     perguntaAtualId = null;
                     await carregarPergunta();
@@ -302,13 +327,42 @@
                 feedback.textContent = erro.message;
                 feedback.className = 'quiz-feedback quiz-erro';
             } finally {
-                botaoProxima.disabled = false;
-                if (!partidaFinalizada) botaoProxima.textContent = 'Próxima pergunta →';
+                if (partidaFinalizada) {
+                    botaoProxima.disabled = true;
+                } else if (aguardandoParticipantes) {
+                    botaoProxima.disabled = true;
+                    botaoProxima.textContent = 'Aguardando participantes...';
+                } else {
+                    botaoProxima.disabled = false;
+                    botaoProxima.textContent = 'Próxima pergunta →';
+                }
             }
+        }
+
+        function mostrarAguardandoResultado() {
+            painelPergunta.hidden = true;
+            painelFinal.hidden = false;
+
+            if (aguardandoResultado) return;
+            aguardandoResultado = true;
+
+            etiquetaFinal.textContent = 'QUIZ CONCLUÍDO';
+            tituloFinal.textContent = 'Você terminou!';
+            descricaoFinal.textContent = 'Suas respostas foram registradas. A classificação final aparecerá quando todos os participantes concluírem o quiz.';
+
+            rankingFinal.replaceChildren();
+            const mensagem = document.createElement('p');
+            mensagem.className = 'quiz-ranking-vazio';
+            mensagem.textContent = 'Aguardando os demais participantes...';
+            rankingFinal.appendChild(mensagem);
         }
 
         function mostrarRanking(jogadores) {
             partidaFinalizada = true;
+            aguardandoResultado = false;
+            etiquetaFinal.textContent = 'PARTIDA FINALIZADA';
+            tituloFinal.textContent = 'Classificação final';
+            descricaoFinal.textContent = 'Confira a pontuação e o desempenho de cada participante:';
             painelPergunta.hidden = true;
             painelFinal.hidden = false;
             rankingFinal.replaceChildren();

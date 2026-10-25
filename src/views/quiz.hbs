@@ -94,7 +94,7 @@
         // O apresentador pode ter dados antigos de participante no navegador.
         // Priorizar a chave do apresentador evita enviar um jogadorId desatualizado.
         const jogadorId = ehApresentador ? null : localStorage.getItem('jogador-' + codigo);
-        const chaveJogador = ehApresentador ? null : localStorage.getItem('chave-jogador-' + codigo);
+        let chaveJogador = ehApresentador ? null : localStorage.getItem('chave-jogador-' + codigo);
 
         const progresso = document.getElementById('progresso-pergunta');
         const enunciado = document.getElementById('enunciado-pergunta');
@@ -122,9 +122,6 @@
 
         if (!jogadorId && !ehApresentador) {
             descricao.textContent = 'Sua identificação não foi encontrada. Entre na partida pelo código antes de responder.';
-            painelPergunta.hidden = true;
-        } else if (jogadorId && !chaveJogador && !ehApresentador) {
-            descricao.textContent = 'Esta sessão foi criada antes da proteção de respostas. Entre novamente em uma nova partida para continuar.';
             painelPergunta.hidden = true;
         }
 
@@ -515,11 +512,59 @@
             }
         }
 
+        async function prepararSessaoEIniciarQuiz() {
+            if (!jogadorId && !ehApresentador) return;
+
+            // Vincula uma chave a registros antigos sem chave para evitar bloquear a partida atual.
+            if (jogadorId && !chaveJogador && !ehApresentador) {
+                const nomeSalvo = localStorage.getItem('nome-jogador-' + codigo);
+
+                if (!nomeSalvo) {
+                    descricao.textContent = 'Não encontramos o nome salvo nesta sessão. Entre novamente usando seu nome original.';
+                    feedback.textContent = 'Não foi possível recuperar a sessão automaticamente.';
+                    feedback.className = 'quiz-feedback quiz-erro';
+                    return;
+                }
+
+                descricao.textContent = 'Recuperando sua sessão anterior...';
+
+                try {
+                    const resposta = await fetch(
+                        '/partidas/' + encodeURIComponent(codigo) + '/recuperar-sessao',
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                jogadorId: Number(jogadorId),
+                                nome: nomeSalvo
+                            })
+                        }
+                    );
+                    const dados = await resposta.json();
+
+                    if (!resposta.ok) {
+                        throw new Error(dados.erro || 'Não foi possível recuperar sua sessão.');
+                    }
+
+                    chaveJogador = dados.chaveAcesso;
+                    localStorage.setItem('chave-jogador-' + codigo, chaveJogador);
+                    descricao.textContent = 'Sessão recuperada. Você pode continuar respondendo no próprio ritmo.';
+                } catch (erro) {
+                    descricao.textContent = 'Não foi possível recuperar automaticamente esta sessão.';
+                    feedback.textContent = erro.message;
+                    feedback.className = 'quiz-feedback quiz-erro';
+                    return;
+                }
+            }
+
+            await carregarPergunta();
+            await carregarPlacar();
+            setInterval(carregarPergunta, 2000);
+            setInterval(carregarPlacar, 2000);
+        }
+
         botaoProxima.addEventListener('click', avancarPergunta);
-        carregarPergunta();
-        carregarPlacar();
-        setInterval(carregarPergunta, 2000);
-        setInterval(carregarPlacar, 2000);
+        prepararSessaoEIniciarQuiz();
     </script>
 </body>
 </html>

@@ -480,6 +480,79 @@ router.get('/:codigo/pergunta', async (req, res) => {
     }
 });
 
+router.post('/:codigo/recuperar-sessao', async (req, res) => {
+    try {
+        const partida = await Partida.findOne({
+            where: { codigo: req.params.codigo }
+        });
+
+        if (!partida) {
+            return res.status(404).json({ erro: 'Partida não encontrada.' });
+        }
+
+        const jogadorId = Number(req.body.jogadorId);
+        const nome = typeof req.body.nome === 'string' ? req.body.nome.trim() : '';
+
+        if (!Number.isInteger(jogadorId) || !nome) {
+            return res.status(400).json({
+                erro: 'Não foi possível recuperar a sessão. Feche esta página e entre novamente pelo código e pelo nome usados anteriormente.'
+            });
+        }
+
+        const jogador = await Jogador.findOne({
+            where: {
+                id: jogadorId,
+                partidaId: partida.id,
+                nome
+            },
+            attributes: ['id', 'nome', 'pontuacao', 'chaveAcesso']
+        });
+
+        if (!jogador) {
+            return res.status(404).json({
+                erro: 'Não encontrei esta sessão com esse nome. Confira se o navegador guardou o nome correto.'
+            });
+        }
+
+        // Recuperação de transição: somente jogadores antigos sem chave podem vincular uma.
+        // A atualização condicional garante que apenas a primeira tentativa possa vinculá-la.
+        if (jogador.chaveAcesso) {
+            return res.status(409).json({
+                erro: 'Esta sessão já tem proteção ativa, mas a chave não está neste navegador. Por segurança, entre com uma sessão que tenha a chave original.'
+            });
+        }
+
+        const novaChave = crypto.randomBytes(32).toString('hex');
+        const [atualizados] = await Jogador.update(
+            { chaveAcesso: novaChave },
+            {
+                where: {
+                    id: jogador.id,
+                    partidaId: partida.id,
+                    chaveAcesso: null
+                }
+            }
+        );
+
+        if (atualizados !== 1) {
+            return res.status(409).json({
+                erro: 'Esta sessão acabou de ser vinculada em outro acesso. Atualize a página e tente novamente.'
+            });
+        }
+
+        return res.json({
+            mensagem: 'Sessão recuperada. Você pode continuar o quiz.',
+            jogadorId: jogador.id,
+            chaveAcesso: novaChave
+        });
+    } catch (error) {
+        console.error('Erro ao recuperar sessão do participante:', error);
+        return res.status(500).json({
+            erro: 'Não foi possível recuperar a sessão agora. Tente atualizar a página.'
+        });
+    }
+});
+
 router.get('/:codigo/meu-resultado', async (req, res) => {
     try {
         const partida = await Partida.findOne({

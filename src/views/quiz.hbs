@@ -25,7 +25,7 @@
         .quiz-botao:hover:not(:disabled) { background: #9b72f2; }
         .quiz-botao:disabled { opacity: .5; cursor: not-allowed; }
         .quiz-ranking { display: grid; gap: 12px; margin-top: 24px; }
-        .quiz-ranking-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 17px; background: #22232f; border: 1px solid #393a49; border-radius: 12px; }
+        .quiz-ranking-item { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 17px; background: #22232f; border: 1px solid #393a49; border-radius: 12px; }
         .quiz-ranking-item:first-child { border-color: #9b72f2; background: #241c35; }
         .quiz-ranking-nome { display: flex; align-items: center; gap: 12px; }
         .quiz-ranking-posicao { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: #302443; color: #c4a9ff; font-weight: 800; }
@@ -69,7 +69,7 @@
             </div>
             <section class="quiz-painel-pontuacao" id="painel-pontuacao">
                 <h2>Placar ao vivo</h2>
-                <p>Resposta correta vale 1 ponto, com bônus de rapidez: +3 até 5s, +2 até 10s e +1 até 20s.</p>
+                <p>Resposta correta vale 1 ponto, com bônus de rapidez: +3 até 15s, +2 até 20s e +1 até 30s.</p>
                 <div class="quiz-ranking" id="ranking-ao-vivo"></div>
             </section>
         </section>
@@ -77,7 +77,7 @@
         <section class="quiz-cartao" id="painel-final" hidden>
             <span class="quiz-etiqueta" id="etiqueta-final">PARTIDA FINALIZADA</span>
             <h2 class="quiz-titulo" id="titulo-final">Classificação final</h2>
-            <p class="quiz-descricao" id="descricao-final">Confira a pontuação e o desempenho de cada participante:</p>
+            <p class="quiz-descricao" id="descricao-final">Confira a classificação. Suas respostas detalhadas ficam visíveis apenas para você.</p>
             <div class="quiz-ranking" id="ranking-final"></div>
             <div class="quiz-acoes">
                 <a href="/" class="quiz-botao">Voltar ao início</a>
@@ -89,6 +89,7 @@
         const quiz = document.getElementById('quiz');
         const codigo = quiz.dataset.codigo;
         const jogadorId = localStorage.getItem('jogador-' + codigo);
+        const chaveJogador = localStorage.getItem('chave-jogador-' + codigo);
         const chaveApresentador = sessionStorage.getItem('chave-apresentador-' + codigo);
         const ehApresentador = Boolean(chaveApresentador);
 
@@ -119,6 +120,9 @@
         if (!jogadorId && !ehApresentador) {
             descricao.textContent = 'Sua identificação não foi encontrada. Entre na partida pelo código antes de responder.';
             painelPergunta.hidden = true;
+        } else if (jogadorId && !chaveJogador && !ehApresentador) {
+            descricao.textContent = 'Esta sessão foi criada antes da proteção de respostas. Entre novamente em uma nova partida para continuar.';
+            painelPergunta.hidden = true;
         }
 
         if (ehApresentador) {
@@ -136,7 +140,10 @@
             try {
                 const urlPergunta = '/partidas/' + encodeURIComponent(codigo) + '/pergunta' +
                     (jogadorId ? '?jogadorId=' + encodeURIComponent(jogadorId) : '');
-                const resposta = await fetch(urlPergunta);
+                const opcoesFetch = jogadorId && chaveJogador
+                    ? { headers: { 'X-Chave-Jogador': chaveJogador } }
+                    : {};
+                const resposta = await fetch(urlPergunta, opcoesFetch);
                 const dados = await resposta.json();
 
                 if (!resposta.ok) throw new Error(dados.erro || 'Não foi possível carregar a pergunta.');
@@ -220,7 +227,10 @@
             try {
                 const resposta = await fetch('/partidas/' + encodeURIComponent(codigo) + '/responder', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Chave-Jogador': chaveJogador || ''
+                    },
                     body: JSON.stringify({
                         jogadorId: Number(jogadorId),
                         perguntaId: perguntaAtualId,
@@ -359,12 +369,93 @@
             rankingFinal.appendChild(mensagem);
         }
 
+        async function carregarRespostasPessoais(itemJogador) {
+            if (!chaveJogador || !itemJogador) return;
+
+            const detalhes = document.createElement('details');
+            detalhes.className = 'quiz-respostas-detalhe';
+
+            const resumo = document.createElement('summary');
+            resumo.textContent = 'Carregando suas respostas...';
+            detalhes.appendChild(resumo);
+            itemJogador.appendChild(detalhes);
+
+            try {
+                const resposta = await fetch(
+                    '/partidas/' + encodeURIComponent(codigo) + '/meu-resultado',
+                    { headers: { 'X-Chave-Jogador': chaveJogador } }
+                );
+                const dados = await resposta.json();
+
+                if (!resposta.ok) {
+                    resumo.textContent = 'Suas respostas estão indisponíveis';
+                    const aviso = document.createElement('p');
+                    aviso.className = 'quiz-resposta-status';
+                    aviso.textContent = dados.erro || 'Não foi possível carregar seu resultado individual.';
+                    detalhes.appendChild(aviso);
+                    return;
+                }
+
+                const respostas = Array.isArray(dados.respostas) ? dados.respostas : [];
+                const acertos = respostas.filter(item => item.respondida && item.correta).length;
+                const erros = respostas.filter(item => item.respondida && !item.correta).length;
+                const semResposta = respostas.filter(item => !item.respondida).length;
+
+                resumo.textContent = 'Ver minhas respostas — ' +
+                    acertos + (acertos === 1 ? ' acerto' : ' acertos') + ' · ' +
+                    erros + (erros === 1 ? ' erro' : ' erros') +
+                    (semResposta ? ' · ' + semResposta + (semResposta === 1 ? ' sem resposta' : ' sem respostas') : '');
+
+                const lista = document.createElement('ul');
+                lista.className = 'quiz-respostas-lista';
+
+                respostas.forEach(itemResposta => {
+                    const linha = document.createElement('li');
+                    linha.className = 'quiz-resposta-item';
+
+                    const pergunta = document.createElement('p');
+                    pergunta.className = 'quiz-resposta-pergunta';
+                    pergunta.textContent = 'Pergunta ' + itemResposta.numero + ': ' + itemResposta.enunciado;
+
+                    const resultado = document.createElement('p');
+                    resultado.className = 'quiz-resposta-status';
+
+                    if (!itemResposta.respondida) {
+                        linha.classList.add('quiz-resposta-item--sem-resposta');
+                        resultado.textContent = '— Não respondida. Resposta correta: ' +
+                            itemResposta.respostaCorreta + ' — ' + itemResposta.textoCorreto;
+                    } else if (itemResposta.correta) {
+                        linha.classList.add('quiz-resposta-item--correta');
+                        resultado.textContent = '✅ Acertou — sua resposta: ' +
+                            itemResposta.alternativaEscolhida + ' — ' + itemResposta.textoEscolhido;
+                    } else {
+                        linha.classList.add('quiz-resposta-item--incorreta');
+                        resultado.textContent = '❌ Errou — você marcou: ' +
+                            itemResposta.alternativaEscolhida + ' — ' + itemResposta.textoEscolhido +
+                            '. Resposta correta: ' + itemResposta.respostaCorreta + ' — ' + itemResposta.textoCorreto;
+                    }
+
+                    linha.append(pergunta, resultado);
+                    lista.appendChild(linha);
+                });
+
+                detalhes.appendChild(lista);
+            } catch (erro) {
+                resumo.textContent = 'Suas respostas estão indisponíveis';
+                const aviso = document.createElement('p');
+                aviso.className = 'quiz-resposta-status';
+                aviso.textContent = 'Falha de conexão ao carregar suas respostas.';
+                detalhes.appendChild(aviso);
+                console.error('Erro ao buscar respostas pessoais:', erro);
+            }
+        }
+
         function mostrarRanking(jogadores) {
             partidaFinalizada = true;
             aguardandoResultado = false;
             etiquetaFinal.textContent = 'PARTIDA FINALIZADA';
             tituloFinal.textContent = 'Classificação final';
-            descricaoFinal.textContent = 'Confira a pontuação e o desempenho de cada participante:';
+            descricaoFinal.textContent = 'Confira a classificação. Suas respostas detalhadas ficam visíveis apenas para você.';
             painelPergunta.hidden = true;
             painelFinal.hidden = false;
             rankingFinal.replaceChildren();
@@ -377,12 +468,17 @@
                 return;
             }
 
+            let itemPessoal = null;
+
             jogadores.forEach((jogador, indice) => {
                 const item = document.createElement('article');
                 item.className = 'quiz-ranking-item';
 
                 const ehVoce = jogadorId && String(jogador.id) === String(jogadorId);
-                if (ehVoce) item.classList.add('quiz-ranking-item--voce');
+                if (ehVoce) {
+                    item.classList.add('quiz-ranking-item--voce');
+                    itemPessoal = item;
+                }
 
                 const nome = document.createElement('span');
                 nome.className = 'quiz-ranking-nome';
@@ -407,58 +503,13 @@
                 pontos.textContent = jogador.pontuacao + (jogador.pontuacao === 1 ? ' ponto' : ' pontos');
 
                 item.append(nome, pontos);
-
-                const respostas = Array.isArray(jogador.respostas) ? jogador.respostas : [];
-                const acertos = respostas.filter(resposta => resposta.respondida && resposta.correta).length;
-                const erros = respostas.filter(resposta => resposta.respondida && !resposta.correta).length;
-                const semResposta = respostas.filter(resposta => !resposta.respondida).length;
-
-                const detalhes = document.createElement('details');
-                detalhes.className = 'quiz-respostas-detalhe';
-
-                const resumo = document.createElement('summary');
-                resumo.textContent = 'Ver respostas — ' +
-                    acertos + (acertos === 1 ? ' acerto' : ' acertos') + ' · ' +
-                    erros + (erros === 1 ? ' erro' : ' erros') +
-                    (semResposta ? ' · ' + semResposta + (semResposta === 1 ? ' sem resposta' : ' sem respostas') : '');
-
-                const lista = document.createElement('ul');
-                lista.className = 'quiz-respostas-lista';
-
-                respostas.forEach(resposta => {
-                    const linha = document.createElement('li');
-                    linha.className = 'quiz-resposta-item';
-
-                    const pergunta = document.createElement('p');
-                    pergunta.className = 'quiz-resposta-pergunta';
-                    pergunta.textContent = 'Pergunta ' + resposta.numero + ': ' + resposta.enunciado;
-
-                    const resultado = document.createElement('p');
-                    resultado.className = 'quiz-resposta-status';
-
-                    if (!resposta.respondida) {
-                        linha.classList.add('quiz-resposta-item--sem-resposta');
-                        resultado.textContent = '— Não respondeu. Resposta correta: ' +
-                            resposta.respostaCorreta + ' — ' + resposta.textoCorreto;
-                    } else if (resposta.correta) {
-                        linha.classList.add('quiz-resposta-item--correta');
-                        resultado.textContent = '✅ Acertou — sua resposta: ' +
-                            resposta.alternativaEscolhida + ' — ' + resposta.textoEscolhido;
-                    } else {
-                        linha.classList.add('quiz-resposta-item--incorreta');
-                        resultado.textContent = '❌ Errou — você marcou: ' +
-                            resposta.alternativaEscolhida + ' — ' + resposta.textoEscolhido +
-                            '. Resposta correta: ' + resposta.respostaCorreta + ' — ' + resposta.textoCorreto;
-                    }
-
-                    linha.append(pergunta, resultado);
-                    lista.appendChild(linha);
-                });
-
-                detalhes.append(resumo, lista);
-                item.appendChild(detalhes);
                 rankingFinal.appendChild(item);
             });
+
+            // O endpoint individual é autenticado por um segredo que nunca entra no ranking público.
+            if (itemPessoal && jogadorId && chaveJogador) {
+                carregarRespostasPessoais(itemPessoal);
+            }
         }
 
         botaoProxima.addEventListener('click', avancarPergunta);

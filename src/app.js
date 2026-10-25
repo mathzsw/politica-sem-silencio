@@ -1,5 +1,6 @@
 const express = require('express');
 const { engine } = require('express-handlebars');
+const { DataTypes } = require('sequelize');
 const sequelize = require('../database/database');
 
 const perguntasRoutes = require('./routes/perguntas');
@@ -7,7 +8,7 @@ const jogadoresRoutes = require('./routes/jogadores');
 const partidasRoutes = require('./routes/partidas');
 const adminRoutes = require('./routes/admin');
 
-const { Pergunta } = require('./models');
+const { Pergunta, Jogador } = require('./models');
 
 const app = express();
 
@@ -38,6 +39,21 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 
+async function garantirColunaChaveAcesso() {
+    const queryInterface = sequelize.getQueryInterface();
+    const tabelaJogadores = Jogador.getTableName();
+    const colunas = await queryInterface.describeTable(tabelaJogadores);
+
+    // Adiciona a coluna sem apagar os jogadores já cadastrados no banco.
+    if (!colunas.chaveAcesso) {
+        await queryInterface.addColumn(tabelaJogadores, 'chaveAcesso', {
+            type: DataTypes.STRING(64),
+            allowNull: true
+        });
+        console.log('Coluna de acesso privado dos participantes adicionada.');
+    }
+}
+
 async function carregarPerguntasIniciais() {
     const perguntasIniciais = require('./perguntas-iniciais');
     let cadastradas = 0;
@@ -66,6 +82,7 @@ async function startServer() {
 
         await sequelize.sync();
 
+        await garantirColunaChaveAcesso();
         await carregarPerguntasIniciais();
 
         app.listen(PORT, () => {
